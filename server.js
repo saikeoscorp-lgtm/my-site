@@ -260,7 +260,3 @@ app.post("/api/admin/delete-user", requireAdmin, (req, res) => {
     }
   );
 });
-
-app.listen(PORT, "0.0.0.0", () => {
-	console.log(`Server started: http://0.0.0.0:${PORT}`);
-});
