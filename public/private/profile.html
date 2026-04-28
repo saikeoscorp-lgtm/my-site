@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8" />
+	    <link rel="icon" href="/favicon.svg" type="image/x-icon" />
+	    <meta name="viwport" content="width=device-width, initial-scale=1.0" />
+	    <title>Профиль</title>
+	    <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<div class="topbar">
+		<div class="top-bar-left">
+			<div>
+			<a href="/index.html"><img src="/image/text-logo.svg" alt="logo" width="100" height="20"></a>
+			</div>
+
+		</div>
+
+		<div class="butt-top-right">
+			<a href="/private/docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
+			<a href="/private/admin.html" class="button-top" id="adminBtn"><b>Админка</b></a>
+			<a href="/login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
+			<a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
+		</div>
+	</div>
+
+	<div class="container">
+		<img src="/image/fa&te.svg" alt="Korvin" width="700" height="100" >
+
+		<center><h1>Профиль</h1></center>
+		<div id="status" class="status-box">Ожидание...</div>
+		<div id="content"></div>
+		<div class="nav" id="nav">
+		<!-- <p><a href="/"><button>На главную</button></a></p> -->
+		</div>
+	</div>
+<script>
+	async function loadProfile() {
+  const status = document.getElementById('status');
+  const content = document.getElementById('content');
+
+  try {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+
+    if (!data.user) {
+      status.textContent = 'Ты не вошёл в аккаунт';
+      content.innerHTML = '';
+      return;
+    }
+
+    status.textContent = 'Профиль загружен';
+    content.innerHTML = `
+      <p><b>ID:</b> ${data.user.id}</p>
+      <p><b>Логин:</b> ${data.user.username}</p>
+      <p><b>Email:</b> ${data.user.email}</p>
+      <p><b>Роль:</b> ${data.user.role}</p>
+    `;
+  } catch (err) {
+    status.textContent = 'Ошибка загрузки профиля';
+  }
+}
+
+loadProfile();
+	// async function loadProfile() {
+	// 	const res = await fetch("/api/me");
+	// 	const data = await res.json();
+	// 	const content = document.getElementById("content");
+
+	// 	if (!res.ok) {
+	// 		content.innerHTML = `<p>${data.error}</p>`;
+	// 		return;
+	// 	}
+
+	// 	content.innerHTML = `
+	// 		<div class="card">
+	// 			<h3>Информация об аккаунте</h3>
+	// 			<p>Пользователь: <b>${data.user.username}</b></p>
+	// 			<p>Почта: <b>${data.user.email}</b></p>
+	// 			<p>Роль: <b>${data.user.role}</b></p>
+	// 		</div>
+	// 		`;
+	// }
+
+	// loadProfile();
+	</script>
+</body>
+</html>

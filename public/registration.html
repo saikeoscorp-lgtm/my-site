@@ -1,0 +1,91 @@
+<DOCTYPE html>
+<html lang="ru">
+    <head>
+    <meta charset="UTF-8" />
+	    <link rel="icon" href="image/favicon.svg" type="image/x-icon" />
+	    <meta name="viwport" content="width=device-width, initial-scale=1.0" />
+	    <title>Регистрация</title>
+	    <link rel="stylesheet" href="style.css" />
+     </head>
+     <body>
+		<div class="topbar">
+		<div class="top-bar-left">
+			<div>
+			<a href="index.html"><img src="image/text-logo.svg" alt="logo" width="100" height="20"></a>
+			</div>
+
+		</div>
+
+		<div class="butt-top-right">
+			<a href="docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
+			<a href="admin.html" class="button-top" id="adminBtn"><b>Админка</b></a>
+			<a href="/login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
+			<a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
+		</div>
+	</div>
+		
+        <div class="container">
+
+			<img src="image/fa&te.svg" alt="Korvin" width="700" height="100" > 
+
+			<center><h1>Регистрация</h1></center>
+            <div class="card">
+		            <form id="registerForm">
+		              <input type="text" id="usernameInput" placeholder="Логин"/>
+		              <input type="email" id="emailInput" placeholder="Почта" />
+		             <input type="password" id="passwordInput" placeholder="Пароль"/>
+		             <button type="sumbit">Регистрация</button>
+		            </form>
+
+		    </div>
+             <div id="message"></div>
+        </div>
+       
+
+        
+     </body>
+     <script>
+const registerForm = document.getElementById('registerForm');
+const usernameInput = document.getElementById('usernameInput');
+const emailInput = document.getElementById('emailInput');
+const passwordInput = document.getElementById('passwordInput');
+const message = document.getElementById('message');
+
+if (registerForm) {
+  registerForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const username = usernameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !email || !password) {
+      message.textContent = 'Заполни все поля';
+      return;
+    }
+
+    try {
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        message.textContent = data.error || 'Ошибка регистрации';
+        return;
+      }
+
+      message.textContent = data.message || 'Регистрация успешна';
+      window.location.href = '/login.html';
+    } catch (error) {
+      message.textContent = 'Ошибка соединения с сервером';
+    }
+  });
+}
+</script>
+ </html>

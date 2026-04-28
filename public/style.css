@@ -1,0 +1,247 @@
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: #111;
+	color: #eee;
+}
+
+.container {
+	max-width: 700px;
+	margin: 40px auto;
+	padding: 40px;
+	background: #1d1c1c;
+	border-radius: 20px;
+}
+
+h1, h2, h3 {
+	color: #f2b759;
+}
+
+p {
+	color: #fff;
+}
+
+.admin-search {
+    min-width: 280px;
+    flex: 1;
+    max-width: 420px;
+}
+
+.admin-search input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  outline: none;
+}
+
+.admin-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    color: white;
+}
+
+.admin-card-title {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-bottom: 8px;
+}
+
+.admin-card-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+
+input, button {
+	display: block;
+	width: 100%;
+	margin-bottom: 12px;
+	padding: 12px;
+	border-radius: 8px;
+	border: none;
+	box-sizing: border-box;
+}
+
+button {
+	cursor: pointer;
+	background: #4b5563;
+}
+
+a {
+	color: #7ab7ff;
+	text-decoration: none;
+}
+
+.nav {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+}
+
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 16px;
+	margin-top 20px;
+}
+
+.card {
+	background: #qf2937;
+	border: 1px solid #374151;
+	border-radius: 20px;
+	padding: 20px;
+}
+
+
+.user-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.user-item {
+	background: #1f2937;
+	border: 1px solid #374151;
+	border-radius: 14px;
+	padding: 16px;
+	margin-bottom: 14px;
+}
+
+.user-meta {
+	margin-bottom: 10px;
+	color: #e5e7eb;
+}
+
+.user-actions {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 10px;
+}
+
+button.secondary {
+	background: #374151;
+}
+
+button.secondary:hover {
+	background: #64F3FF;
+}
+
+.button-top {
+	padding: auto;
+	color: floralwhite;
+	margin-right: 20px;
+	font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* .image-button {
+	width: 100px;
+    height: 20px;
+	background-image: url(/text-logo.svg);
+	background-size: cover;
+	border: none;
+    cursor: pointer;
+
+} */
+
+.butt-top-left {
+	float: right;
+	display: flex;
+	color: #ffffff;
+	padding: 5px;
+
+	font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.butt-top-right {
+	float: right;
+	display: flex;
+	color: #ffffff;
+	padding: 5px;
+
+	font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+
+.back-bar-butt {
+	max-width: 90px;
+	display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 2px 2px;
+  background: #1d1c1c;
+
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 15px;
+  background: #111;
+  border-bottom: 0px solid #4b5563;
+
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Кнопка назад */
+.back-btn {
+  text-decoration: none;
+  color: #050505;
+  font-size: 18px;
+}
+
+/* Баланс по центру */
+.balance {
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.balance span {
+  display: block;
+  font-size: 14px;
+  color: #888;
+}
+
+.balance b {
+  font-size: 22px;
+}
+
+/* Кнопка меню */
+.menu-btn {
+  font-size: 22px;
+  color: #007aff;
+}
+
+button.danger {
+	background: #dc2626;
+}
+button.danger:hover {
+	background: #b91c1c;
+}
+
+.status-box {
+	/* margin-top: 20px;
+	padding: 16px;
+	border-radius: 14px;
+	background: #1f2937;
+	border: 1px solid #374151; */
+	animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+	0% { opacity: 0.5; }
+	50% { opacity: 1;}
+	100% { opacity: 0.5;}
+}
+
