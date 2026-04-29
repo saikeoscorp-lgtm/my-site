@@ -143,7 +143,7 @@ app.get("/api/me", async (req, res) => {
 
   try {
     const result = await db.query(
-      "SELECT id, username, email, role, bio, avatar_url FROM users WHERE id = $1",
+      "SELECT id, username, email, role, bio, avatar_url, avatar_data FROM users WHERE id = $1",
       [req.session.user.id]
     );
 
@@ -158,7 +158,7 @@ app.post("/api/profile/update", async (req, res) => {
     return res.status(401).json({ error: "Сначала войди в аккаунт" });
   }
 
-  const { username, email, bio, avatar_url } = req.body;
+  const { username, email, bio, avatar_url, avatar_data } = req.body;
 
   if (!username || !email) {
     return res.status(400).json({ error: "Логин и email обязательны" });
@@ -168,11 +168,22 @@ app.post("/api/profile/update", async (req, res) => {
     const result = await db.query(
       `
       UPDATE users
-      SET username = $1, email = $2, bio = $3, avatar_url = $4
-      WHERE id = $5
-      RETURNING id, username, email, role, bio, avatar_url
+      SET username = $1,
+          email = $2,
+          bio = $3,
+          avatar_url = $4,
+          avatar_data = $5
+      WHERE id = $6
+      RETURNING id, username, email, role, bio, avatar_url, avatar_data
       `,
-      [username, email, bio || "", avatar_url || "", req.session.user.id]
+      [
+        username,
+        email,
+        bio || "",
+        avatar_url || "",
+        avatar_data || "",
+        req.session.user.id
+      ]
     );
 
     const user = result.rows[0];
@@ -181,9 +192,7 @@ app.post("/api/profile/update", async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role,
-      bio: user.bio,
-      avatar_url: user.avatar_url
+      role: user.role
     };
 
     res.json({ message: "Профиль обновлён", user });
