@@ -78,7 +78,7 @@ app.post("/register", async (req, res) => {
 
     try {
       await resend.emails.send({
-  from: "onboarding@resend.dev",
+  from: "no-reply@korvin-base.ru",
   to: email,
   subject: "Код подтверждения Korvin Base",
   text: `Твой код подтверждения: ${code}`
