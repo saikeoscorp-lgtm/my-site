@@ -321,39 +321,55 @@ app.post("/api/change-password", async (req, res) => {
       [req.session.user.id]
     );
 
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
+    app.post("/login", async (req, res) => {
+  const { login, password } = req.body;
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({erros: "Пользователь не найден" )};
-    }
+  if (!login || !password) {
+    return res.status(400).json({ error: "Введи логин/почту и пароль" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      SELECT *
+      FROM users
+      WHERE username = $1 OR email = $1
+      LIMIT 1
+      `,
+      [login]
+    );
 
     const user = result.rows[0];
 
-    if (!user.is_verified) {
-    return res.status(403).json({erros: "Подтверди email" )};
+    if (!user) {
+      return res.status(401).json({ error: "Неверный логин или пароль" });
     }
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
+    if (!user.is_verified) {
+      return res.status(403).json({ error: "Подтверди email перед входом" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-      return res.status(400).json({ error: "Старый пароль неверный" });
+      return res.status(401).json({ error: "Неверный логин или пароль" });
     }
 
-    const newHash = await bcrypt.hash(newPassword, 10);
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
 
-    await db.query(
-      "UPDATE users SET password_hash = $1 WHERE id = $2",
-      [newHash, req.session.user.id]
-    );
-
-    res.json({ message: "Пароль изменён" });
+    res.json({
+      message: "Вход выполнен",
+      user: req.session.user
+    });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Ошибка сервера" });
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ error: "Ошибка входа" });
   }
 });
 
