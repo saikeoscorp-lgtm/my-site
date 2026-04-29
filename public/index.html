@@ -19,8 +19,21 @@
 		<div class="butt-top-right">
 			<a href="/private/docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
 			<a href="/private/profile.html" class="button-top" id="profileBtn"><b>Профиль</b></a>
-			<a href="login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
-			<a href="registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
+			<div id="userBox" style="display:none; align-items:center; gap:10px;">
+  <img id="headerAvatar"
+       src="/image/text-logo.svg"
+       width="32"
+       height="32"
+       style="border-radius:50%; object-fit:cover;">
+
+  <span id="headerUsername"></span>
+
+  <button onclick="logout()">Выйти</button>
+</div>
+	<div id="guestBox">
+  <a href="/login.html" class="button-top"><b>Вход</b></a>
+  <a href="/registration.html" class="button-top"><b>Регистрация</b></a>
+</div>
 
 		</div>
 	</div>
