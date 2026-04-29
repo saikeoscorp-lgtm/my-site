@@ -1,3 +1,19 @@
+const nodemailer = require("nodemailer");
+
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+function makeCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
