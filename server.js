@@ -1,5 +1,4 @@
 const { Resend } = require("resend");
-const resend = new Resend(process.env.RESEND_API_KEY);
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
@@ -8,6 +7,8 @@ const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function makeCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
