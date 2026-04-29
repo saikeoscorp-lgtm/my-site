@@ -7,6 +7,7 @@
   <title>Профиль</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
+
 <body>
   <div class="topbar">
     <div class="top-bar-left">
@@ -34,41 +35,41 @@
       <center>
         <img
           id="avatarPreview"
-          src="/image/default-avatar.svg"
+          src="/image/text-logo.svg"
           alt="avatar"
           width="120"
           height="120"
-          style="border-radius: 50%; object-fit: cover; border: 2px solid #555;"
+          style="border-radius:50%; object-fit:cover; border:2px solid #555;"
         >
       </center>
 
       <p><b>ID:</b> <span id="userId"></span></p>
       <p><b>Роль:</b> <span id="userRole"></span></p>
 
-      <label>Логин</label>
+      <label for="usernameInput">Логин</label>
       <input id="usernameInput" type="text" placeholder="Логин">
 
-      <label>Email</label>
+      <label for="emailInput">Email</label>
       <input id="emailInput" type="email" placeholder="Email">
 
-      <label>Фото профиля URL</label>
+      <label for="avatarInput">Фото профиля URL</label>
       <input id="avatarInput" type="text" placeholder="https://example.com/avatar.png">
 
-      <label>Загрузить фото</label>
-<input id="avatarFileInput" type="file" accept="image/*">
+      <label for="avatarFileInput">Загрузить фото</label>
+      <input id="avatarFileInput" type="file" accept="image/*">
 
-      <label>О себе</label>
+      <label for="bioInput">О себе</label>
       <textarea id="bioInput" rows="4" placeholder="Расскажи о себе"></textarea>
 
       <br><br>
 
-      <button id="saveBtn">Сохранить</button>
+      <button type="button" id="saveBtn">Сохранить</button>
     </div>
   </div>
 
   <script>
     let avatarData = "";
-  
+
     async function loadProfile() {
       const status = document.getElementById("status");
       const card = document.getElementById("profileCard");
@@ -98,53 +99,59 @@
 
         avatarData = user.avatar_data || "";
 
-document.getElementById("avatarPreview").src =
-  user.avatar_data || user.avatar_url || "/image/default-avatar.svg";
+        document.getElementById("avatarPreview").src =
+          user.avatar_data ||
+          user.avatar_url ||
+          "/image/text-logo.svg";
 
       } catch (err) {
+        console.error(err);
         status.textContent = "Ошибка загрузки профиля";
       }
     }
 
     document.getElementById("avatarInput").addEventListener("input", function () {
-      document.getElementById("avatarPreview").src =
-        this.value || "/image/default-avatar.svg";
+      if (this.value) {
+        avatarData = "";
+        document.getElementById("avatarPreview").src = this.value;
+      } else {
+        document.getElementById("avatarPreview").src = avatarData || "/image/text-logo.svg";
+      }
     });
 
-    document.getElementById("saveBtn").addEventListener("click", async () => {
+    document.getElementById("avatarFileInput").addEventListener("change", function () {
+      const file = this.files[0];
+
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Фото слишком большое. Максимум 2 МБ");
+        this.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        avatarData = reader.result;
+        document.getElementById("avatarInput").value = "";
+        document.getElementById("avatarPreview").src = avatarData;
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("saveBtn").onclick = async function () {
       const status = document.getElementById("status");
 
-    document.getElementById("avatarFileInput").addEventListener("change", function () {
-  const file = this.files[0];
-
-  if (!file) return;
-
-  if (file.size > 2 * 1024 * 1024) {
-    alert("Фото слишком большое. Максимум 2 МБ");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function () {
-    avatarData = reader.result;
-    document.getElementById("avatarPreview").src = avatarData;
-  };
-
-  reader.readAsDataURL(file);
-});
-
-if (!res.ok) {
-  status.textContent = data.error || "Ошибка сохранения";
-  console.log(data);
-  return;
-}
+      status.textContent = "Сохраняю...";
 
       const payload = {
-        username: document.getElementById("usernameInput").value,
-        email: document.getElementById("emailInput").value,
+        username: document.getElementById("usernameInput").value.trim(),
+        email: document.getElementById("emailInput").value.trim(),
         bio: document.getElementById("bioInput").value,
-        avatar_url: document.getElementById("avatarInput").value
+        avatar_url: document.getElementById("avatarInput").value.trim(),
+        avatar_data: avatarData || ""
       };
 
       try {
@@ -157,26 +164,23 @@ if (!res.ok) {
         });
 
         const data = await res.json();
-        
-        const payload = {
-  username: document.getElementById("usernameInput").value,
-  email: document.getElementById("emailInput").value,
-  bio: document.getElementById("bioInput").value,
-  avatar_url: document.getElementById("avatarInput").value,
-  avatar_data: avatarData
-};
 
         if (!res.ok) {
           status.textContent = data.error || "Ошибка сохранения";
+          alert(data.error || "Ошибка сохранения");
           return;
         }
 
         status.textContent = "Профиль сохранён";
-        loadProfile();
+        alert("Сохранено");
+        await loadProfile();
+
       } catch (err) {
-        status.textContent = "Ошибка сервера";
+        console.error(err);
+        status.textContent = "Ошибка запроса";
+        alert("Ошибка запроса");
       }
-    });
+    };
 
     loadProfile();
   </script>
