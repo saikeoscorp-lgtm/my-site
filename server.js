@@ -136,10 +136,22 @@ res.json({ message: "You is Log Out" });
 });
 });
 
-app.get("/api/me", (req, res) => {
-if (!req.session.user) {
-return res.json({ user: null });
-}
+app.get("/api/me", async (req, res) => {
+  if (!req.session.user) {
+    return res.json({ user: null });
+  }
+
+  try {
+    const result = await db.query(
+      "SELECT id, username, email, role, bio, avatar_url FROM users WHERE id = $1",
+      [req.session.user.id]
+    );
+
+    res.json({ user: result.rows[0] || null });
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка загрузки профиля" });
+  }
+});
 
 app.post("/api/profile/update", async (req, res) => {
   if (!req.session.user) {
@@ -183,9 +195,6 @@ app.post("/api/profile/update", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
-});
-
-res.json({ user: req.session.user });
 });
 
 app.get("/profile.html", requireUserOrAdmin, (req, res) => {
