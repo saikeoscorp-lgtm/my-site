@@ -93,7 +93,7 @@ app.post("/register", async (req, res) => {
   from: "onboarding@resend.dev",
   to: email,
   subject: "Код подтверждения Korvin Base",
-  text: Твой код подтверждения: ${code}
+  text: `Твой код подтверждения: ${code}`
 });
     } catch (mailErr) {
       console.error("MAIL ERROR:", mailErr);
