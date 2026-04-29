@@ -1,11 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require("pg");
 
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-    if (err) {
-        console.error('Ошибка подключения к SQLite:', err.message);
-    } else {
-        console.log('SQLite подключена');
-    }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: false
 });
 
-module.exports = db;
+module.exports = pool;
