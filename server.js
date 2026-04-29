@@ -89,12 +89,12 @@ app.post("/register", async (req, res) => {
     );
 
     try {
-      await mailer.sendMail({
-        from: process.env.SMTP_USER,
-        to: email,
-        subject: "Код подтверждения Korvin Base",
-        text: `Твой код подтверждения: ${code}. Код действует 10 минут.`
-      });
+      await resend.emails.send({
+  from: "onboarding@resend.dev",
+  to: email,
+  subject: "Код подтверждения Korvin Base",
+  text: Твой код подтверждения: ${code}
+});
     } catch (mailErr) {
       console.error("MAIL ERROR:", mailErr);
       return res.status(500).json({
