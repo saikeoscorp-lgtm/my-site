@@ -11,11 +11,13 @@ const PORT = process.env.PORT || 3000;
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
-  secure: true,
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
-  }
+  },
+  tls: {}
+  rejectUnautorized: false
 });
 
 function makeCode() {
