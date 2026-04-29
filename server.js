@@ -319,7 +319,20 @@ app.post("/api/change-password", async (req, res) => {
       [req.session.user.id]
     );
 
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({erros: "Пользователь не найден" )};
+    }
+
     const user = result.rows[0];
+
+    if (!user.is_verified) {
+    return res.status(403).json({erros: "Подтверди email" )};
+    }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
 
