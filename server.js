@@ -104,6 +104,21 @@ app.post("/register", async (req, res) => {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ error: "Ошибка регистрации" });
   }
+  console.log("REGISTER START");
+
+try {
+  await resend.emails.send({
+    from: "no-reply@korvin-base.ru",
+    to: email,
+    subject: "Код подтверждения",
+    text: Код: ${code}
+  });
+
+  console.log("EMAIL SENT OK");
+
+} catch (err) {
+  console.error("EMAIL ERROR:", err);
+}
 });
 
 app.post("/api/verify-email", async (req, res) => {
