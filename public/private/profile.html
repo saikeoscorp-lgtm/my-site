@@ -118,6 +118,40 @@
         document.getElementById("avatarPreview").src = avatarData || "/image/text-logo.svg";
       }
     });
+    
+    document.getElementById("changePasswordBtn").onclick = async function () {
+  const status = document.getElementById("status");
+
+  const payload = {
+    oldPassword: document.getElementById("oldPassword").value,
+    newPassword: document.getElementById("newPassword").value
+  };
+
+  status.textContent = "Меняю пароль...";
+
+  try {
+    const res = await fetch("/api/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      status.textContent = data.error;
+      return;
+    }
+
+    status.textContent = "Пароль успешно изменён";
+    alert("Готово");
+
+  } catch (err) {
+    status.textContent = "Ошибка запроса";
+  }
+};
 
     document.getElementById("avatarFileInput").addEventListener("change", function () {
       const file = this.files[0];
