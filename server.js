@@ -66,38 +66,98 @@ next();
 }
 
 app.post("/register", async (req, res) => {
-const { username, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-if (!username || !email || !password) {
-return res.status(400).json({ error: "Заполни все поля" });
-}
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: "Заполни все поля" });
+  }
 
-try {
-const password_hash = await bcrypt.hash(password, 10);
+  try {
+    const password_hash = await bcrypt.hash(password, 10);
+    const code = makeCode();
 
-const result = await db.query(
-`
-INSERT INTO users (username, email, password_hash, role)
-VALUES ($1, $2, $3, $4)
-RETURNING id
-`,
-[username, email, password_hash, "user"]
-);
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-res.json({
-message: "Регистрация успешна",
-userId: result.rows[0].id
+    const result = await db.query(
+      `
+      INSERT INTO users 
+      (username, email, password_hash, role, is_verified, verification_code, verification_expires)
+      VALUES ($1, $2, $3, $4, false, $5, $6)
+      RETURNING id, email
+      `,
+      [username, email, password_hash, "user", code, expires]
+    );
+
+    await mailer.sendMail({
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: "Код подтверждения Korvin Base",
+      text: `Твой код подтверждения: ${code}. Код действует 10 минут.`
+    });
+
+    res.json({
+      message: "Регистрация успешна. Код отправлен на почту.",
+      userId: result.rows[0].id
+    });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(400).json({
+        error: "Пользователь с таким логином или почтой уже существует"
+      });
+    }
+
+    console.error(err);
+    res.status(500).json({ error: "Ошибка регистрации" });
+  }
 });
-} catch (err) {
-if (err.code === "23505") {
-return res.status(400).json({
-error: "Пользователь с таким логином или почтой уже существует"
-});
-}
 
-console.error(err);
-res.status(500).json({ error: "Ошибка базы данных" });
-}
+app.post("/api/verify-email", async (req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({ error: "Email и код обязательны" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      SELECT id, verification_code, verification_expires
+      FROM users
+      WHERE email = $1
+      `,
+      [email]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    if (user.verification_code !== code) {
+      return res.status(400).json({ error: "Неверный код" });
+    }
+
+    if (new Date(user.verification_expires) < new Date()) {
+      return res.status(400).json({ error: "Код истёк" });
+    }
+
+    await db.query(
+      `
+      UPDATE users
+      SET is_verified = true,
+          verification_code = null,
+          verification_expires = null
+      WHERE id = $1
+      `,
+      [user.id]
+    );
+
+    res.json({ message: "Email подтверждён" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
 });
 
 app.post("/login", async (req, res) => {
@@ -105,6 +165,10 @@ const { login, password } = req.body;
 
 if (!login || !password) {
 return res.status(400).json({ error: "Введи логин/почту и пароль" });
+}
+
+if (!user.is_verified) {
+  return res.status(403).json({ error: "Подтверди email перед входом" });
 }
 
 try {
