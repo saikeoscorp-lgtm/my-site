@@ -1,4 +1,12 @@
 const nodemailer = require("nodemailer");
+const express = require("express");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+const path = require("path");
+const db = require("./db");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -14,55 +22,44 @@ function makeCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-const express = require("express");
-const session = require("express-session");
-const bcrypt = require("bcrypt");
-const path = require("path");
-const db = require("./db");
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-app.use(
-session({
-secret: "curva_plyad_mat",
-resave: false,
-saveUninitialized: false,
-cookie: {
-httpOnly: true,
-sameSite: "lax",
-secure: false
-}
-})
-);
+app.use(session({
+  secret: "curva_plyad_mat",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false
+  }
+}));
 
 app.use(express.static(path.join(__dirname, "public")));
 
 function requireUserOrAdmin(req, res, next) {
-if (!req.session.user) {
-return res.status(401).json({ error: "Сначала войди в аккаунт" });
-}
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
 
-if (req.session.user.role !== "admin" && req.session.user.role !== "user") {
-return res.status(403).json({ error: "Нет доступа" });
-}
+  if (req.session.user.role !== "admin" && req.session.user.role !== "user") {
+    return res.status(403).json({ error: "Нет доступа" });
+  }
 
-next();
+  next();
 }
 
 function requireAdmin(req, res, next) {
-if (!req.session.user) {
-return res.status(401).json({ error: "Сначала войди в аккаунт" });
-}
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
 
-if (req.session.user.role !== "admin") {
-return res.status(403).json({ error: "Нет доступа" });
-}
+  if (req.session.user.role !== "admin") {
+    return res.status(403).json({ error: "Нет доступа" });
+  }
 
-next();
+  next();
 }
 
 app.post("/register", async (req, res) => {
@@ -75,12 +72,11 @@ app.post("/register", async (req, res) => {
   try {
     const password_hash = await bcrypt.hash(password, 10);
     const code = makeCode();
-
     const expires = new Date(Date.now() + 10 * 60 * 1000);
 
     const result = await db.query(
       `
-      INSERT INTO users 
+      INSERT INTO users
       (username, email, password_hash, role, is_verified, verification_code, verification_expires)
       VALUES ($1, $2, $3, $4, false, $5, $6)
       RETURNING id, email
@@ -88,12 +84,19 @@ app.post("/register", async (req, res) => {
       [username, email, password_hash, "user", code, expires]
     );
 
-    await mailer.sendMail({
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: "Код подтверждения Korvin Base",
-      text: `Твой код подтверждения: ${code}. Код действует 10 минут.`
-    });
+    try {
+      await mailer.sendMail({
+        from: process.env.SMTP_USER,
+        to: email,
+        subject: "Код подтверждения Korvin Base",
+        text: `Твой код подтверждения: ${code}. Код действует 10 минут.`
+      });
+    } catch (mailErr) {
+      console.error("MAIL ERROR:", mailErr);
+      return res.status(500).json({
+        error: "Пользователь создан, но письмо не отправилось. Проверь SMTP."
+      });
+    }
 
     res.json({
       message: "Регистрация успешна. Код отправлен на почту.",
@@ -106,7 +109,7 @@ app.post("/register", async (req, res) => {
       });
     }
 
-    console.error(err);
+    console.error("REGISTER ERROR:", err);
     res.status(500).json({ error: "Ошибка регистрации" });
   }
 });
@@ -155,7 +158,7 @@ app.post("/api/verify-email", async (req, res) => {
 
     res.json({ message: "Email подтверждён" });
   } catch (err) {
-    console.error(err);
+    console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -205,7 +208,6 @@ app.post("/login", async (req, res) => {
       message: "Вход выполнен",
       user: req.session.user
     });
-
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     res.status(500).json({ error: "Ошибка входа" });
@@ -213,9 +215,9 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/api/logout", (req, res) => {
-req.session.destroy(() => {
-res.json({ message: "You is Log Out" });
-});
+  req.session.destroy(() => {
+    res.json({ message: "You is Log Out" });
+  });
 });
 
 app.get("/api/me", async (req, res) => {
@@ -231,6 +233,7 @@ app.get("/api/me", async (req, res) => {
 
     res.json({ user: result.rows[0] || null });
   } catch (err) {
+    console.error("ME ERROR:", err);
     res.status(500).json({ error: "Ошибка загрузки профиля" });
   }
 });
@@ -241,6 +244,10 @@ app.post("/api/profile/update", async (req, res) => {
   }
 
   const { username, email, bio, avatar_url, avatar_data } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: "Логин и email обязательны" });
+  }
 
   try {
     const result = await db.query(
@@ -264,40 +271,24 @@ app.post("/api/profile/update", async (req, res) => {
       ]
     );
 
-    res.json({ message: "Профиль сохранён", user: result.rows[0] });
+    const user = result.rows[0];
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
+
+    res.json({ message: "Профиль сохранён", user });
   } catch (err) {
+    if (err.code === "23505") {
+      return res.status(400).json({ error: "Такой логин или email уже занят" });
+    }
+
     console.error("PROFILE UPDATE ERROR:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Ошибка сервера" });
   }
-});
-
-app.get("/profile.html", requireUserOrAdmin, (req, res) => {
-res.sendFile(path.join(__dirname, "public", "private", "profile.html"));
-});
-
-app.get("/admin.html", requireAdmin, (req, res) => {
-res.sendFile(path.join(__dirname, "public", "private", "admin.html"));
-});
-
-app.get("/docs.html", requireUserOrAdmin, (req, res) => {
-res.sendFile(path.join(__dirname, "public", "private", "docs.html"));
-});
-
-app.get("/api/admin", requireAdmin, async (req, res) => {
-try {
-const result = await db.query(
-"SELECT id, username, email, role FROM users ORDER BY id"
-);
-
-res.json({
-message: "Welcome in admin panel",
-user: req.session.user,
-allUsers: result.rows
-});
-} catch (err) {
-console.error(err);
-res.status(500).json({ error: "Ошибка базы данных" });
-}
 });
 
 app.post("/api/change-password", async (req, res) => {
@@ -317,129 +308,132 @@ app.post("/api/change-password", async (req, res) => {
 
   try {
     const result = await db.query(
-      "SELECT password_hash FROM users WHERE id = $1",
+      "SELECT id, password_hash FROM users WHERE id = $1",
       [req.session.user.id]
-    );
-
-    app.post("/login", async (req, res) => {
-  const { login, password } = req.body;
-
-  if (!login || !password) {
-    return res.status(400).json({ error: "Введи логин/почту и пароль" });
-  }
-
-  try {
-    const result = await db.query(
-      `
-      SELECT *
-      FROM users
-      WHERE username = $1 OR email = $1
-      LIMIT 1
-      `,
-      [login]
     );
 
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).json({ error: "Неверный логин или пароль" });
+      return res.status(404).json({ error: "Пользователь не найден" });
     }
 
-    if (!user.is_verified) {
-      return res.status(403).json({ error: "Подтверди email перед входом" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
 
     if (!isMatch) {
-      return res.status(401).json({ error: "Неверный логин или пароль" });
+      return res.status(400).json({ error: "Старый пароль неверный" });
     }
 
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE users SET password_hash = $1 WHERE id = $2",
+      [newHash, user.id]
+    );
+
+    res.json({ message: "Пароль изменён" });
+  } catch (err) {
+    console.error("CHANGE PASSWORD ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+app.get("/profile.html", requireUserOrAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "private", "profile.html"));
+});
+
+app.get("/admin.html", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "private", "admin.html"));
+});
+
+app.get("/docs.html", requireUserOrAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "private", "docs.html"));
+});
+
+app.get("/api/admin", requireAdmin, async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT id, username, email, role FROM users ORDER BY id"
+    );
 
     res.json({
-      message: "Вход выполнен",
-      user: req.session.user
+      message: "Welcome in admin panel",
+      user: req.session.user,
+      allUsers: result.rows
     });
-
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ error: "Ошибка входа" });
+    console.error("ADMIN ERROR:", err);
+    res.status(500).json({ error: "Ошибка базы данных" });
   }
 });
 
 app.post("/api/admin/change-role", requireAdmin, async (req, res) => {
-const { userId, role } = req.body;
+  const { userId, role } = req.body;
 
-if (!userId || !role) {
-return res.status(400).json({ error: "userId and role required" });
-}
+  if (!userId || !role) {
+    return res.status(400).json({ error: "userId and role required" });
+  }
 
-if (!["admin", "user", "viewer"].includes(role)) {
-return res.status(400).json({ error: "invalid role" });
-}
+  if (!["admin", "user", "viewer"].includes(role)) {
+    return res.status(400).json({ error: "invalid role" });
+  }
 
-try {
-const result = await db.query(
-`
-UPDATE users
-SET role = $1
-WHERE id = $2
-RETURNING id
-`,
-[role, userId]
-);
+  try {
+    const result = await db.query(
+      `
+      UPDATE users
+      SET role = $1
+      WHERE id = $2
+      RETURNING id
+      `,
+      [role, userId]
+    );
 
-if (result.rows.length === 0) {
-return res.status(404).json({ error: "user not found" });
-}
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "user not found" });
+    }
 
-res.json({ message: "role updated" });
-} catch (err) {
-console.error(err);
-res.status(500).json({ error: "Ошибка базы данных" });
-}
+    res.json({ message: "role updated" });
+  } catch (err) {
+    console.error("CHANGE ROLE ERROR:", err);
+    res.status(500).json({ error: "Ошибка базы данных" });
+  }
 });
 
 app.post("/api/admin/delete-user", requireAdmin, async (req, res) => {
-const { userId } = req.body;
+  const { userId } = req.body;
 
-if (!userId) {
-return res.status(400).json({ error: "userId required" });
-}
+  if (!userId) {
+    return res.status(400).json({ error: "userId required" });
+  }
 
-const id = Number(userId);
+  const id = Number(userId);
 
-if (req.session.user && req.session.user.id === id) {
-return res.status(400).json({ error: "you cannot delete yourself" });
-}
+  if (req.session.user && req.session.user.id === id) {
+    return res.status(400).json({ error: "you cannot delete yourself" });
+  }
 
-try {
-const result = await db.query(
-`
-DELETE FROM users
-WHERE id = $1
-RETURNING id
-`,
-[id]
-);
+  try {
+    const result = await db.query(
+      `
+      DELETE FROM users
+      WHERE id = $1
+      RETURNING id
+      `,
+      [id]
+    );
 
-if (result.rows.length === 0) {
-return res.status(404).json({ error: "user not found" });
-}
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "user not found" });
+    }
 
-res.json({ message: "user deleted" });
-} catch (err) {
-console.error(err);
-res.status(500).json({ error: "Ошибка базы данных" });
-}
+    res.json({ message: "user deleted" });
+  } catch (err) {
+    console.error("DELETE USER ERROR:", err);
+    res.status(500).json({ error: "Ошибка базы данных" });
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-console.log(`Server started on port ${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });
