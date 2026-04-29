@@ -119,17 +119,19 @@
       }
     });
     
-    document.getElementById("changePasswordBtn").onclick = async function () {
-  const status = document.getElementById("status");
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
 
-  const payload = {
-    oldPassword: document.getElementById("oldPassword").value,
-    newPassword: document.getElementById("newPassword").value
-  };
+if (changePasswordBtn) {
+  changePasswordBtn.onclick = async function () {
+    const status = document.getElementById("status");
 
-  status.textContent = "Меняю пароль...";
+    const payload = {
+      oldPassword: document.getElementById("oldPassword").value,
+      newPassword: document.getElementById("newPassword").value
+    };
 
-  try {
+    status.textContent = "Меняю пароль...";
+
     const res = await fetch("/api/change-password", {
       method: "POST",
       headers: {
@@ -141,17 +143,16 @@
     const data = await res.json();
 
     if (!res.ok) {
-      status.textContent = data.error;
+      status.textContent = data.error || "Ошибка смены пароля";
       return;
     }
 
-    status.textContent = "Пароль успешно изменён";
-    alert("Готово");
+    status.textContent = "Пароль изменён";
+    alert("Пароль изменён");
+  };
+}
 
-  } catch (err) {
-    status.textContent = "Ошибка запроса";
-  }
-};
+loadProfile();
 
     document.getElementById("avatarFileInput").addEventListener("change", function () {
       const file = this.files[0];
