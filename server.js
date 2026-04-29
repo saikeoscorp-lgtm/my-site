@@ -1,4 +1,5 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
