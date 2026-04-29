@@ -160,10 +160,6 @@ app.post("/api/profile/update", async (req, res) => {
 
   const { username, email, bio, avatar_url, avatar_data } = req.body;
 
-  if (!username || !email) {
-    return res.status(400).json({ error: "Логин и email обязательны" });
-  }
-
   try {
     const result = await db.query(
       `
@@ -186,23 +182,10 @@ app.post("/api/profile/update", async (req, res) => {
       ]
     );
 
-    const user = result.rows[0];
-
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
-
-    res.json({ message: "Профиль обновлён", user });
+    res.json({ message: "Профиль сохранён", user: result.rows[0] });
   } catch (err) {
-    if (err.code === "23505") {
-      return res.status(400).json({ error: "Такой логин или email уже занят" });
-    }
-
-    console.error(err);
-    res.status(500).json({ error: "Ошибка сервера" });
+    console.error("PROFILE UPDATE ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
