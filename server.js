@@ -161,53 +161,55 @@ app.post("/api/verify-email", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-const { login, password } = req.body;
+  const { login, password } = req.body;
 
-if (!login || !password) {
-return res.status(400).json({ error: "Введи логин/почту и пароль" });
-}
+  if (!login || !password) {
+    return res.status(400).json({ error: "Введи логин/почту и пароль" });
+  }
 
-if (!user.is_verified) {
-  return res.status(403).json({ error: "Подтверди email перед входом" });
-}
+  try {
+    const result = await db.query(
+      `
+      SELECT *
+      FROM users
+      WHERE username = $1 OR email = $1
+      LIMIT 1
+      `,
+      [login]
+    );
 
-try {
-const result = await db.query(
-`
-SELECT * FROM users
-WHERE username = $1 OR email = $1
-LIMIT 1
-`,
-[login]
-);
+    const user = result.rows[0];
 
-const user = result.rows[0];
+    if (!user) {
+      return res.status(401).json({ error: "Неверный логин или пароль" });
+    }
 
-if (!user) {
-return res.status(401).json({ error: "Неверный логин или пароль" });
-}
+    if (!user.is_verified) {
+      return res.status(403).json({ error: "Подтверди email перед входом" });
+    }
 
-const isMatch = await bcrypt.compare(password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
-if (!isMatch) {
-return res.status(401).json({ error: "Неверный логин или пароль" });
-}
+    if (!isMatch) {
+      return res.status(401).json({ error: "Неверный логин или пароль" });
+    }
 
-req.session.user = {
-id: user.id,
-username: user.username,
-email: user.email,
-role: user.role
-};
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
 
-res.json({
-message: "Вход выполнен",
-user: req.session.user
-});
-} catch (err) {
-console.error(err);
-res.status(500).json({ error: "Ошибка сервера" });
-}
+    res.json({
+      message: "Вход выполнен",
+      user: req.session.user
+    });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ error: "Ошибка входа" });
+  }
 });
 
 app.post("/api/logout", (req, res) => {
