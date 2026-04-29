@@ -141,6 +141,50 @@ if (!req.session.user) {
 return res.json({ user: null });
 }
 
+app.post("/api/profile/update", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
+
+  const { username, email, bio, avatar_url } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: "Логин и email обязательны" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE users
+      SET username = $1, email = $2, bio = $3, avatar_url = $4
+      WHERE id = $5
+      RETURNING id, username, email, role, bio, avatar_url
+      `,
+      [username, email, bio || "", avatar_url || "", req.session.user.id]
+    );
+
+    const user = result.rows[0];
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      bio: user.bio,
+      avatar_url: user.avatar_url
+    };
+
+    res.json({ message: "Профиль обновлён", user });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(400).json({ error: "Такой логин или email уже занят" });
+    }
+
+    console.error(err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 res.json({ user: req.session.user });
 });
 
