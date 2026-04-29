@@ -67,6 +67,8 @@
   </div>
 
   <script>
+    let avatarData = "";
+  
     async function loadProfile() {
       const status = document.getElementById("status");
       const card = document.getElementById("profileCard");
@@ -94,8 +96,10 @@
         document.getElementById("bioInput").value = user.bio || "";
         document.getElementById("avatarInput").value = user.avatar_url || "";
 
-        document.getElementById("avatarPreview").src =
-          user.avatar_url || "/image/default-avatar.svg";
+        avatarData = user.avatar_data || "";
+
+document.getElementById("avatarPreview").src =
+  user.avatar_data || user.avatar_url || "/image/default-avatar.svg";
 
       } catch (err) {
         status.textContent = "Ошибка загрузки профиля";
@@ -109,6 +113,26 @@
 
     document.getElementById("saveBtn").addEventListener("click", async () => {
       const status = document.getElementById("status");
+
+    document.getElementById("avatarFileInput").addEventListener("change", function () {
+  const file = this.files[0];
+
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert("Фото слишком большое. Максимум 2 МБ");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    avatarData = reader.result;
+    document.getElementById("avatarPreview").src = avatarData;
+  };
+
+  reader.readAsDataURL(file);
+});
 
       const payload = {
         username: document.getElementById("usernameInput").value,
@@ -127,6 +151,14 @@
         });
 
         const data = await res.json();
+        
+        const payload = {
+  username: document.getElementById("usernameInput").value,
+  email: document.getElementById("emailInput").value,
+  bio: document.getElementById("bioInput").value,
+  avatar_url: document.getElementById("avatarInput").value,
+  avatar_data: avatarData
+};
 
         if (!res.ok) {
           status.textContent = data.error || "Ошибка сохранения";
