@@ -218,6 +218,50 @@ res.status(500).json({ error: "Ошибка базы данных" });
 }
 });
 
+app.post("/api/change-password", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
+
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: "Заполни все поля" });
+  }
+
+  if (newPassword.length < 5) {
+    return res.status(400).json({ error: "Пароль слишком короткий" });
+  }
+
+  try {
+    const result = await db.query(
+      "SELECT password_hash FROM users WHERE id = $1",
+      [req.session.user.id]
+    );
+
+    const user = result.rows[0];
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Старый пароль неверный" });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE users SET password_hash = $1 WHERE id = $2",
+      [newHash, req.session.user.id]
+    );
+
+    res.json({ message: "Пароль изменён" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.post("/api/admin/change-role", requireAdmin, async (req, res) => {
 const { userId, role } = req.body;
 
