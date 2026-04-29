@@ -134,6 +134,12 @@ document.getElementById("avatarPreview").src =
   reader.readAsDataURL(file);
 });
 
+if (!res.ok) {
+  status.textContent = data.error || "Ошибка сохранения";
+  console.log(data);
+  return;
+}
+
       const payload = {
         username: document.getElementById("usernameInput").value,
         email: document.getElementById("emailInput").value,
