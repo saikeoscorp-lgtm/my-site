@@ -158,5 +158,35 @@ async function logout() {
 
 loadUser();
 </script>
+<script>
+async function loadHeaderUser() {
+  try {
+    const res = await fetch("/api/me");
+    const data = await res.json();
+
+    if (!data.user) return;
+
+    document.getElementById("guestBox").style.display = "none";
+    document.getElementById("userBox").style.display = "flex";
+
+    document.getElementById("headerUsername").textContent = data.user.username;
+
+    document.getElementById("headerAvatar").src =
+      data.user.avatar_data ||
+      data.user.avatar_url ||
+      "/image/text-logo.svg";
+
+  } catch (err) {
+    console.error("header load error", err);
+  }
+}
+
+async function logout() {
+  await fetch("/api/logout", { method: "POST" });
+  location.reload();
+}
+
+loadHeaderUser();
+</script>
 </body>
 </html>
