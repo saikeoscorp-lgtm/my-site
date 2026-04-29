@@ -111,7 +111,7 @@ try {
     from: "no-reply@korvin-base.ru",
     to: email,
     subject: "Код подтверждения",
-    text: Код: ${code}
+    text: `Код: ${code}`
   });
 
   console.log("EMAIL SENT OK");
