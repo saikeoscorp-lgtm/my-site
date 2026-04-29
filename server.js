@@ -18,7 +18,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(session({
-  secret: "curva_plyad_mat",
+  secret: process.env.SESSION_SECRET || "curva_plyad_mat",
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -77,16 +77,20 @@ app.post("/register", async (req, res) => {
     );
 
     try {
+      console.log("SENDING EMAIL:", email, code);
+
       await resend.emails.send({
-  from: "no-reply@korvin-base.ru",
-  to: email,
-  subject: "Код подтверждения Korvin Base",
-  text: `Твой код подтверждения: ${code}`
-});
+        from: "no-reply@korvin-base.ru",
+        to: email,
+        subject: "Код подтверждения Korvin Base",
+        text: `Твой код подтверждения: ${code}`
+      });
+
+      console.log("EMAIL SENT OK");
     } catch (mailErr) {
       console.error("MAIL ERROR:", mailErr);
       return res.status(500).json({
-        error: "Пользователь создан, но письмо не отправилось. Проверь SMTP."
+        error: "Пользователь создан, но письмо не отправилось. Проверь Resend."
       });
     }
 
@@ -104,21 +108,6 @@ app.post("/register", async (req, res) => {
     console.error("REGISTER ERROR:", err);
     res.status(500).json({ error: "Ошибка регистрации" });
   }
-  console.log("REGISTER START");
-
-try {
-  await resend.emails.send({
-    from: "no-reply@korvin-base.ru",
-    to: email,
-    subject: "Код подтверждения",
-    text: `Код: ${code}`
-  });
-
-  console.log("EMAIL SENT OK");
-
-} catch (err) {
-  console.error("EMAIL ERROR:", err);
-}
 });
 
 app.post("/api/verify-email", async (req, res) => {
@@ -223,7 +212,7 @@ app.post("/login", async (req, res) => {
 
 app.post("/api/logout", (req, res) => {
   req.session.destroy(() => {
-    res.json({ message: "You is Log Out" });
+    res.json({ message: "Вы вышли из аккаунта" });
   });
 });
 
@@ -234,7 +223,11 @@ app.get("/api/me", async (req, res) => {
 
   try {
     const result = await db.query(
-      "SELECT id, username, email, role, bio, avatar_url, avatar_data FROM users WHERE id = $1",
+      `
+      SELECT id, username, email, role, bio, avatar_url, avatar_data
+      FROM users
+      WHERE id = $1
+      `,
       [req.session.user.id]
     );
 
