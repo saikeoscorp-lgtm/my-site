@@ -108,7 +108,7 @@
         document.getElementById("avatarPreview").src =
           user.avatar_data ||
           user.avatar_url ||
-          "/image/text-logo.svg";
+          "/image/no_avatar.svg";
 
       } catch (err) {
         console.error(err);
@@ -121,7 +121,7 @@
         avatarData = "";
         document.getElementById("avatarPreview").src = this.value;
       } else {
-        document.getElementById("avatarPreview").src = avatarData || "/image/text-logo.svg";
+        document.getElementById("avatarPreview").src = avatarData || "/image/no_avatar.svg";
       }
     });
     
