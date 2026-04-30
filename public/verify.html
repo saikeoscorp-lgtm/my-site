@@ -38,7 +38,7 @@
 const params = new URLSearchParams(window.location.search);
 const email = params.get("email");
 
-document.getElementById("emailText").textContent = <h2>"Код отправлен на: " + email</h2>;
+document.getElementById("emailText").textContent = "Код отправлен на: " + email;
 
 document.getElementById("verifyBtn").onclick = async () => {
   const code = document.getElementById("code").value;
