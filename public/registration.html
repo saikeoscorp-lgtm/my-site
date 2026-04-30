@@ -4,7 +4,7 @@
 	<meta charset="UTF-8" />
 	    <link rel="icon" href="image/favicon.svg" type="image/x-icon" />
 	    <meta name="viwport" content="width=device-width, initial-scale=1.0" />
-	    <title>Вход</title>
+	    <title>Регистрация</title>
 	    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,33 +17,34 @@
 		</div>
 
 		<div class="butt-top-right">
-			<a href="registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
+			<a href="login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
 		</div>
 	</div>
 
 	<div class="container">
 		<img src="image/fa&te.svg" alt="Korvin" width="700" height="100">
-		<center><h1>Вход</h1></center>
+		<center><h1>Регистрация</h1></center>
 		
-	
+	<!-- 
 		<div class="card">
 		<form id="loginForm">
 		 <input type="text" id="loginInput" placeholder="Логин или Почта" />
 		 <input type="password" id="passwordInput" placeholder="Пароль"  />
 		 <button type="submit" id="loginBtn">Вход</button>
-		</form>
+		</form> -->
 		<!-- <label>
 		<input type="checkbox" > Запомнить
 		</label> -->
-		</div>
 </body>
-  
+  <div class="card">
 <form id="registerForm">
   <input id="username" placeholder="Логин">
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Пароль">
   <button>Зарегистрироваться</button>
 </form>
+  </div>
+</div>
 
 <script>
 document.getElementById("registerForm").onsubmit = async (e) => {
