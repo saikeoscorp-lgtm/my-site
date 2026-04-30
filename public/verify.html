@@ -4,7 +4,7 @@
 	<meta charset="UTF-8" />
 	    <link rel="icon" href="image/favicon.svg" type="image/x-icon" />
 	    <meta name="viwport" content="width=device-width, initial-scale=1.0" />
-	    <title>Регистрация</title>
+	    <title>Подтверждение email</title>
 	    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -24,10 +24,10 @@
 	<div class="container">
 		<img src="image/fa&te.svg" alt="Korvin" width="700" height="100">
 		<center><h1>Подтверждение email</h1></center>
-
-<p id="emailText"></p>
-    
+		
 <div class="card">
+<p id="emailText"></p>
+
 <input id="code" placeholder="Введите код">
 <button id="verifyBtn">Подтвердить</button>
 
@@ -38,7 +38,7 @@
 const params = new URLSearchParams(window.location.search);
 const email = params.get("email");
 
-document.getElementById("emailText").textContent = "Код отправлен на: " + email;
+document.getElementById("emailText").textContent = <h2>"Код отправлен на: " + email</h2>;
 
 document.getElementById("verifyBtn").onclick = async () => {
   const code = document.getElementById("code").value;
