@@ -19,12 +19,12 @@
 		<div class="butt-top-right">
 			<a href="/private/docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
 			<a href="/private/profile.html" class="button-top" id="profileBtn"><b>Профиль</b></a>
-			<div id="userBox" style="display:none; align-items:center; gap:2px;">
+			<!-- <div id="userBox" style="display:none; align-items:center; gap:10px;">
   <img id="headerAvatar"
        src="/image/no_avatar.svg"
        width="32"
        height="32"
-       style="border-radius:50%; object-fit:cover;">
+       style="border-radius:50%; object-fit:cover;"> -->
 
   <span id="headerUsername"></span>
 
@@ -126,9 +126,9 @@ if (logoutBtn) {
 
 		if (data.user) {
 			status.innerHTML = `
-				<p>Вы авторизирован: <b>${data.user.username}</b></p>
-				<p>Роль: <b>${data.user.role}</b></p>
-				<button onclick="logout()">Выход</button>
+				// <p>Вы авторизирован: <b>${data.user.username}</b></p>
+				// <p>Роль: <b>${data.user.role}</b></p>
+				// <button onclick="logout()">Выход</button>
 			`;
 		} else {
 			status.innerHTML = `
