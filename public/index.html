@@ -125,11 +125,11 @@ if (logoutBtn) {
 		const status = document.getElementById("status");
 
 		if (data.user) {
-			status.innerHTML = `
-				// <p>Вы авторизирован: <b>${data.user.username}</b></p>
-				// <p>Роль: <b>${data.user.role}</b></p>
-				// <button onclick="logout()">Выход</button>
-			`;
+			// status.innerHTML = `
+			// 	 <p>Вы авторизирован: <b>${data.user.username}</b></p>
+			// 	 <p>Роль: <b>${data.user.role}</b></p>
+			// 	 <button onclick="logout()">Выход</button>
+			// `;
 		} else {
 			status.innerHTML = `
 				<p>Вы не авторизированы</p>
