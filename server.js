@@ -27,6 +27,14 @@ const loginLimiter = rateLimit({
   }
 });
 
+const apiLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    error: "Слишком много попыток входа. Попробуйте позже"
+  }
+});
+
 app.use(session({
   secret: process.env.SESSION_SECRET || "curva_plyad_mat",
   resave: false,
