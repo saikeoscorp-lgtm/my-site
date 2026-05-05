@@ -935,6 +935,29 @@ app.post("/api/admin/unlink-device", requireAdmin, async (req, res) => {
   }
 });
 
+app.post("/api/admin/device-command", requireAdmin, async (req, res) => {
+  const { deviceId, command } = req.body;
+
+  if (!deviceId || !command) {
+    return res.status(400).json({ error: "deviceId и command обязательны" });
+  }
+
+  try {
+    await db.query(
+      `
+      INSERT INTO device_commands (device_id, command)
+      VALUES ($1, $2)
+      `,
+      [deviceId, command]
+    );
+
+    res.json({ ok: true, message: "Команда отправлена" });
+  } catch (err) {
+    console.error("ADMIN DEVICE COMMAND ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
