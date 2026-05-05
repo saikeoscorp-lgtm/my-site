@@ -84,6 +84,7 @@ async function loadAdmin() {
         <button onclick="changeRole(${user.id}, 'admin')">Сделать Админом</button>
         <button onclick="changeRole(${user.id}, 'user')">Сделать Пользователем</button>
         <button onclick="changeRole(${user.id}, 'viewer')">Сделать Гостем</button>
+		<button onclick="changeRole(${user.id}, 'device_user')">esp</button>
         <button onclick="deleteUser(${user.id})">Удалить</button>
       </li>
     `).join("");
