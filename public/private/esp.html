@@ -130,10 +130,12 @@ async function sendCommand(cmd) {
 // автообновление каждые 3 сек
 
 setInterval(loadStatus, 3000);
+setInterval(loadLogs, 3000);
 
 // первая загрузка
 
 loadStatus();
+loadLogs();
 </script>
 </body>
 </html>
