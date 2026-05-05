@@ -444,6 +444,132 @@ app.post("/api/admin/delete-user", requireAdmin, async (req, res) => {
   }
 });
 
+function getBearerToken(req) {
+  const auth = req.headers.authorization || "";
+
+  if (!auth.startsWith("Bearer ")) {
+    return null;
+  }
+
+  return auth.slice(7);
+}
+
+async function requireApiAuth(req, res, next) {
+  const token = getBearerToken(req);
+
+  if (!token) {
+    return res.status(401).json({ error: "Нет токена" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      SELECT users.id, users.username, users.email, users.role
+      FROM user_tokens
+      JOIN users ON users.id = user_tokens.user_id
+      WHERE user_tokens.token = $1
+      LIMIT 1
+      `,
+      [token]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: "Неверный токен" });
+    }
+
+    req.apiUser = user;
+    next();
+  } catch (err) {
+    console.error("API AUTH ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+}
+
+function requireApiAdmin(req, res, next) {
+  if (!req.apiUser || req.apiUser.role !== "admin") {
+    return res.status(403).json({ error: "Нет доступа" });
+  }
+
+  next();
+}
+
+app.post("/api/auth/login", async (req, res) => {
+  const { login, password } = req.body;
+
+  if (!login || !password) {
+    return res.status(400).json({ error: "Введи логин/почту и пароль" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      SELECT *
+      FROM users
+      WHERE username = $1 OR email = $1
+      LIMIT 1
+      `,
+      [login]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: "Неверный логин или пароль" });
+    }
+
+    if (!user.is_verified) {
+      return res.status(403).json({ error: "Подтверди email перед входом" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Неверный логин или пароль" });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await db.query(
+      `
+      INSERT INTO user_tokens (user_id, token)
+      VALUES ($1, $2)
+      `,
+      [user.id, token]
+    );
+
+    res.json({
+      ok: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    console.error("API LOGIN ERROR:", err);
+    res.status(500).json({ error: "Ошибка входа" });
+  }
+});
+
+app.get("/api/auth/me", requireApiAuth, async (req, res) => {
+  res.json({ user: req.apiUser });
+});
+
+app.post("/api/auth/logout", requireApiAuth, async (req, res) => {
+  const token = getBearerToken(req);
+
+  await db.query(
+    "DELETE FROM user_tokens WHERE token = $1",
+    [token]
+  );
+
+  res.json({ ok: true, message: "Вы вышли" });
+});
+
 // ===== ESP API =====
 
 app.get("/api/devices", async (req, res) => {
