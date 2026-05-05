@@ -710,7 +710,7 @@ app.get("/api/device/status/:deviceId", requireApiAuth, async (req, res) => {
   }
 });
 
-  } catch (err) {
+  catch (err) {
     console.error("STATUS ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
