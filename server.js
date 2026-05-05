@@ -469,6 +469,7 @@ async function requireApiAuth(req, res, next) {
       FROM user_tokens
       JOIN users ON users.id = user_tokens.user_id
       WHERE user_tokens.token = $1
+      AND user_tokens.expires_at > NOW()
       LIMIT 1
       `,
       [token]
@@ -534,8 +535,8 @@ app.post("/api/auth/login", async (req, res) => {
 
     await db.query(
       `
-      INSERT INTO user_tokens (user_id, token)
-      VALUES ($1, $2)
+      INSERT INTO user_tokens (user_id, token, expires_at)
+      VALUES ($1, $2, NOW() + INTERVAL '30 days')
       `,
       [user.id, token]
     );
