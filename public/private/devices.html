@@ -23,43 +23,69 @@
 			<a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
 		</div>
 	</div>
-  
-<div class="container">
-  <h1>Устройства</h1>
+	
+	<div class="container">
+    <h1>ESP устройства</h1>
 
-  <div id="devices"></div>
-</div>
+    <div id="status">Загрузка...</div>
+    <div id="devices"></div>
+  </div>
 
-<script>
-async function loadDevices() {
-  const res = await fetch("/api/devices");
-  const data = await res.json();
+  <script>
+    async function loadDevices() {
+      const status = document.getElementById("status");
+      const box = document.getElementById("devices");
 
-  const container = document.getElementById("devices");
+      try {
+        const res = await fetch("/api/admin/devices");
+        const data = await res.json();
 
-  container.innerHTML = data.devices.map(d => {
-    const online =
-      d.last_ping &&
-      new Date() - new Date(d.last_ping) < 30000;
+        if (!res.ok) {
+          status.textContent = data.error || "Ошибка";
+          return;
+        }
 
-    return `
-      <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-        <h3>${d.device_id}</h3>
-        <p>Статус: ${online ? "🟢 Online" : "🔴 Offline"}</p>
-        <p>Температура: ${d.temperature || "-"}</p>
+        status.textContent = "Устройства загружены";
 
-        <button onclick="openDevice('${d.device_id}')">
-          Открыть
-        </button>
-      </div>
-    `;
-  }).join("");
-}
+        if (!data.devices.length) {
+          box.innerHTML = "<p>Устройств пока нет</p>";
+          return;
+        }
 
-function openDevice(id) {
-  window.location.href = "/private/esp.html?device=" + id;
-}
+        box.innerHTML = data.devices.map(d => {
+          const online =
+            d.last_ping &&
+            Date.now() - new Date(d.last_ping).getTime() < 30000;
 
-setInterval(loadDevices, 3000);
-loadDevices();
-</script>
+          return `
+            <div class="card">
+              <h3>${d.device_id}</h3>
+              <p><b>Статус:</b> ${online ? "🟢 Online" : "🔴 Offline"}</p>
+              <p><b>Температура:</b> ${d.temperature || "-"}</p>
+              <p><b>Last ping:</b> ${d.last_ping || "-"}</p>
+              <p><b>User ID:</b> ${d.user_id || "не привязан"}</p>
+              <p><b>Владелец:</b> ${d.username || "-"} ${d.email ? "(" + d.email + ")" : ""}</p>
+
+              <button onclick="openDevice('${d.device_id}')">
+                Открыть
+              </button>
+            </div>
+          `;
+        }).join("");
+
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Ошибка запроса";
+      }
+    }
+
+    function openDevice(deviceId) {
+      window.location.href = "/private/esp.html?device=" + encodeURIComponent(deviceId);
+    }
+
+    loadDevices();
+    setInterval(loadDevices, 5000);
+  </script>
+</body>
+</html>
+
