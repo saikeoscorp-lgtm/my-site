@@ -57,7 +57,7 @@ async function loadStatus() {
 
   try {
 
-    const res = await fetch("/api/device/status/esp-001");
+    const res = await fetch("/api/device/status/" + deviceId);
 
     const data = await res.json();
 
@@ -77,7 +77,7 @@ async function loadStatus() {
 
 async function loadLogs() {
   try {
-    const res = await fetch("/api/device/logs/esp-001");
+    const res = await fetch("/api/device/logs/" + deviceId);
     const data = await res.json();
 
     const logsDiv = document.getElementById("logs");
@@ -112,7 +112,7 @@ async function sendCommand(cmd) {
 
       body: JSON.stringify({
 
-        deviceId: "esp-001",
+        deviceId: deviceId,
 
         command: cmd
 
