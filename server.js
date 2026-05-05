@@ -675,7 +675,7 @@ app.get("/api/devices", requireApiAuth, async (req, res) => {
     FROM devices
     ORDER BY device_id
   `);
-} else if (req.apiUser.role === "devices_user") {
+} else if (req.apiUser.role === "device_user") {
   result = await db.query(`
     SELECT device_id, temperature, last_ping, user_id
     FROM devices
@@ -900,7 +900,7 @@ app.get("/api/admin/devices", requireAdmin, async (req, res) => {
         users.username,
         users.email
       FROM devices
-      LEFT JOIN users ON users.id = devices.user_id
+      LEFT JOIN users ON users.id = device.user_id
       ORDER BY devices.id
     `);
 
