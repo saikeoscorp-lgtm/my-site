@@ -911,6 +911,30 @@ app.get("/api/admin/devices", requireAdmin, async (req, res) => {
   }
 });
 
+app.post("/api/admin/unlink-device", requireAdmin, async (req, res) => {
+  const { deviceId } = req.body;
+
+  if (!deviceId) {
+    return res.status(400).json({ error: "deviceId required" });
+  }
+
+  try {
+    await db.query(
+      `
+      UPDATE devices
+      SET user_id = NULL
+      WHERE device_id = $1
+      `,
+      [deviceId]
+    );
+
+    res.json({ ok: true, message: "Устройство отвязано" });
+  } catch (err) {
+    console.error("UNLINK DEVICE ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
