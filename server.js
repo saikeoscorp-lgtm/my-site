@@ -595,26 +595,22 @@ app.get("/api/devices", requireApiAuth, async (req, res) => {
   try {
     let result;
 
-    if (req.apiUser.role === "admin") {
-      result = await db.query(
-        `
-        SELECT device_id, temperature, last_ping, user_id
-        FROM devices
-        ORDER BY device_id
-        `
-      );
-    } else {
-      result = await db.query(
-        `
-        SELECT device_id, temperature, last_ping, user_id
-        FROM devices
-        WHERE user_id = $1
-        ORDER BY device_id
-        `,
-        [req.apiUser.id]
-      );
-    }
-
+   if (req.apiUser.role === "admin") {
+  result = await db.query(`
+    SELECT device_id, temperature, last_ping, user_id
+    FROM devices
+    ORDER BY device_id
+  `);
+} else if (req.apiUser.role === "viewer") {
+  result = await db.query(`
+    SELECT device_id, temperature, last_ping, user_id
+    FROM devices
+    WHERE user_id = $1
+    ORDER BY device_id
+  `, [req.apiUser.id]);
+} else {
+  return res.json({ devices: [] });
+} 
     res.json({ devices: result.rows });
   } catch (err) {
     console.error("GET DEVICES ERROR:", err);
