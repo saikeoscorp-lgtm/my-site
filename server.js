@@ -67,7 +67,7 @@ function requireUserOrAdmin(req, res, next) {
     return res.status(401).json({ error: "Сначала войди в аккаунт" });
   }
 
-  if (req.session.user.role !== "admin" && req.session.user.role !== "user") {
+  if (req.session.user.role !== "admin" && req.session.user.role !== "user" && req.session.user.role !== "device_user") {
     return res.status(403).json({ error: "Нет доступа" });
   }
 
@@ -406,7 +406,7 @@ app.post("/api/admin/change-role", requireAdmin, async (req, res) => {
     return res.status(400).json({ error: "userId and role required" });
   }
 
-  if (!["admin", "user", "viewer"].includes(role)) {
+  if (!["admin", "user", "viewer", "device_user"].includes(role)) {
     return res.status(400).json({ error: "invalid role" });
   }
 
@@ -594,7 +594,7 @@ app.post("/api/auth/logout", requireApiAuth, async (req, res) => {
 });
 
 async function userCanAccessDevice(user, deviceId) {
-  if (user.role === "admin") {
+  if (user.role === "device_user") {
     return true;
   }
 
@@ -675,7 +675,7 @@ app.get("/api/devices", requireApiAuth, async (req, res) => {
     FROM devices
     ORDER BY device_id
   `);
-} else if (req.apiUser.role === "viewer") {
+} else if (req.apiUser.role === "devices_user") {
   result = await db.query(`
     SELECT device_id, temperature, last_ping, user_id
     FROM devices
@@ -788,8 +788,8 @@ app.post("/api/device/command", requireApiAuth, async (req, res) => {
     return res.status(400).json({ error: "deviceId и command обязательны" });
   }
 
-  if (req.apiUser.role === "viewer") {
-    return res.status(403).json({ error: "У роли viewer нет прав на команды" });
+  if (req.apiUser.role !== "admin" &&req.apiUser.role !== "device_user") {
+    return res.status(403).json({ error: "Нет прав на команды" });
   }
 
   try {
