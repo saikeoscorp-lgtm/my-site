@@ -32,6 +32,28 @@
   </div>
 
   <script>
+	  async function unlinkDevice(deviceId) {
+  if (!confirm("Отвязать устройство " + deviceId + "?")) return;
+
+  const res = await fetch("/api/admin/unlink-device", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ deviceId })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || "Ошибка отвязки");
+    return;
+  }
+
+  alert("Устройство отвязано");
+  loadDevices();
+}
+	  
     async function loadDevices() {
       const status = document.getElementById("status");
       const box = document.getElementById("devices");
