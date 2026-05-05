@@ -571,20 +571,51 @@ app.post("/api/auth/logout", requireApiAuth, async (req, res) => {
   res.json({ ok: true, message: "Вы вышли" });
 });
 
+async function userCanAccessDevice(user, deviceId) {
+  if (user.role === "admin") {
+    return true;
+  }
+
+  const result = await db.query(
+    `
+    SELECT id
+    FROM devices
+    WHERE device_id = $1 AND user_id = $2
+    LIMIT 1
+    `,
+    [deviceId, user.id]
+  );
+
+  return result.rows.length > 0;
+}
+
 // ===== ESP API =====
 
-app.get("/api/devices", async (req, res) => {
+app.get("/api/devices", requireApiAuth, async (req, res) => {
   try {
-    const result = await db.query(
-      `
-      SELECT device_id, temperature, last_ping
-      FROM devices
-      ORDER BY device_id
-      `
-    );
+    let result;
+
+    if (req.apiUser.role === "admin") {
+      result = await db.query(
+        `
+        SELECT device_id, temperature, last_ping, user_id
+        FROM devices
+        ORDER BY device_id
+        `
+      );
+    } else {
+      result = await db.query(
+        `
+        SELECT device_id, temperature, last_ping, user_id
+        FROM devices
+        WHERE user_id = $1
+        ORDER BY device_id
+        `,
+        [req.apiUser.id]
+      );
+    }
 
     res.json({ devices: result.rows });
-
   } catch (err) {
     console.error("GET DEVICES ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
@@ -642,10 +673,16 @@ app.post("/api/device/ping", async (req, res) => {
 });
 
 
-app.get("/api/device/status/:deviceId", async (req, res) => {
+app.get("/api/device/status/:deviceId", requireApiAuth, async (req, res) => {
   const { deviceId } = req.params;
 
   try {
+    const allowed = await userCanAccessDevice(req.apiUser, deviceId);
+
+    if (!allowed) {
+      return res.status(403).json({ error: "Нет доступа к устройству" });
+    }
+
     const result = await db.query(
       "SELECT * FROM devices WHERE device_id = $1",
       [deviceId]
@@ -667,6 +704,11 @@ app.get("/api/device/status/:deviceId", async (req, res) => {
       temperature: device.temperature,
       lastPing: device.last_ping
     });
+  } catch (err) {
+    console.error("STATUS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
 
   } catch (err) {
     console.error("STATUS ERROR:", err);
@@ -675,14 +717,24 @@ app.get("/api/device/status/:deviceId", async (req, res) => {
 });
 
 
-app.post("/api/device/command", async (req, res) => {
+app.post("/api/device/command", requireApiAuth, async (req, res) => {
   const { deviceId, command } = req.body;
 
   if (!deviceId || !command) {
     return res.status(400).json({ error: "deviceId и command обязательны" });
   }
 
+  if (req.apiUser.role === "viewer") {
+    return res.status(403).json({ error: "У роли viewer нет прав на команды" });
+  }
+
   try {
+    const allowed = await userCanAccessDevice(req.apiUser, deviceId);
+
+    if (!allowed) {
+      return res.status(403).json({ error: "Нет доступа к устройству" });
+    }
+
     await db.query(
       `
       INSERT INTO device_commands (device_id, command)
@@ -692,7 +744,6 @@ app.post("/api/device/command", async (req, res) => {
     );
 
     res.json({ ok: true });
-
   } catch (err) {
     console.error("COMMAND ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
@@ -744,10 +795,16 @@ app.get("/api/device/commands/:deviceId", async (req, res) => {
   }
 });
 
-app.get("/api/device/logs/:deviceId", async (req, res) => {
+app.get("/api/device/logs/:deviceId", requireApiAuth, async (req, res) => {
   const { deviceId } = req.params;
 
   try {
+    const allowed = await userCanAccessDevice(req.apiUser, deviceId);
+
+    if (!allowed) {
+      return res.status(403).json({ error: "Нет доступа к устройству" });
+    }
+
     const result = await db.query(
       `
       SELECT message, created_at
