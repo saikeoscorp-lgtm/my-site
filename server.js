@@ -887,6 +887,30 @@ app.get("/api/device/logs/:deviceId", requireApiAuth, async (req, res) => {
   }
 });
 
+app.get("/api/admin/devices", requireAdmin, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        devices.id,
+        devices.device_id,
+        devices.status,
+        devices.temperature,
+        devices.last_ping,
+        devices.user_id,
+        users.username,
+        users.email
+      FROM devices
+      LEFT JOIN users ON users.id = devices.user_id
+      ORDER BY devices.id
+    `);
+
+    res.json({ devices: result.rows });
+  } catch (err) {
+    console.error("ADMIN DEVICES ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
