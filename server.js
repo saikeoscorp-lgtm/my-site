@@ -710,12 +710,6 @@ app.get("/api/device/status/:deviceId", requireApiAuth, async (req, res) => {
   }
 });
 
-  catch (err) {
-    console.error("STATUS ERROR:", err);
-    res.status(500).json({ error: "Ошибка сервера" });
-  }
-});
-
 
 app.post("/api/device/command", requireApiAuth, async (req, res) => {
   const { deviceId, command } = req.body;
