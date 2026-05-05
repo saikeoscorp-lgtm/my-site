@@ -1,144 +1,125 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-	<meta charset="UTF-8" />
-	    <link rel="icon" href="/image/favicon.svg" type="image/x-icon" />
-	    <meta name="viwport" content="width=device-width, initial-scale=1.0" />
-	    <title>Панель Управления ESP32C3</title>
-	    <link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8" />
+  <link rel="icon" href="/image/favicon.svg" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Панель Управления ESP32C3</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
+
 <body>
-	<div class="topbar">
-		<div class="top-bar-left">
-			<div>
-			<a href="/index.html"><img src="/image/text-logo.svg" alt="logo" width="100" height="20"></a>
-			</div>
-
-		</div>
-
-		<div class="butt-top-right">
-			<a href="/private/docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
-			<a href="/private/profile.html" class="button-top" id="profileBtn"><b>Профиль</b></a>
-			<a href="/login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
-			<a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
-		</div>
-	</div>
-
-	<div class="container">
-    <h2>ESP Devices</h2>
-
-    <div>
-      <p><b>ID:</b> esp-001</p>
-      <p><b>Статус:</b> <span id="status">...</span></p>
-      <p><b>Последний пинг:</b> <span id="lastPing">...</span></p>
+  <div class="topbar">
+    <div class="top-bar-left">
+      <a href="/index.html">
+        <img src="/image/text-logo.svg" alt="logo" width="100" height="20">
+      </a>
     </div>
 
-    <hr>
+    <div class="butt-top-right">
+      <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
+      <a href="/private/profile.html" class="button-top"><b>Профиль</b></a>
+      <a href="/login.html" class="button-top"><b>Вход</b></a>
+      <a href="/registration.html" class="button-top"><b>Регистрация</b></a>
+    </div>
+  </div>
 
-    <div>
+  <div class="container">
+    <h2>ESP устройство</h2>
+
+    <div class="card">
+      <p><b>ID:</b> <span id="deviceId">...</span></p>
+      <p><b>Статус:</b> <span id="status">...</span></p>
+      <p><b>Температура:</b> <span id="temp">...</span></p>
+      <p><b>Последний пинг:</b> <span id="lastPing">...</span></p>
+
       <button onclick="sendCommand('LED_ON')">ON</button>
       <button onclick="sendCommand('LED_OFF')">OFF</button>
     </div>
 
-	<hr>
+    <h3>Logs</h3>
+    <div id="logs" style="max-height:200px; overflow:auto; border:1px solid #ccc; padding:10px;">
+      Loading...
+    </div>
+  </div>
 
-		<h3>Logs</h3>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const deviceId = params.get("device") || "esp-001";
 
-		<div id="logs" style="max-height:200px; overflow:auto; border:1px solid #ccc; padding:10px;">
-			Loading...
-		
-	</div>
+    document.getElementById("deviceId").innerText = deviceId;
 
-<script>
-const params = new URLSearchParams(window.location.search);
-const deviceId = params.get("device") || "esp-001";
+    async function loadStatus() {
+      try {
+        const res = await fetch("/api/admin/device-status/" + encodeURIComponent(deviceId));
+        const data = await res.json();
 
-async function loadStatus() {
+        if (!res.ok) {
+          document.getElementById("status").innerText = data.error || "Ошибка";
+          return;
+        }
 
-  try {
-
-    const res = await fetch("/api/device/status/" + deviceId);
-
-    const data = await res.json();
-
-    document.getElementById("status").innerText = data.online ? "🟢 Online" : "🔴 Offline";
-
-    document.getElementById("temp").innerText = data.temperature || "-";
-
-    document.getElementById("lastPing").innerText = data.lastPing || "-";
-
-  } catch (e) {
-
-    console.error(e);
-
-  }
-
-}
-
-async function loadLogs() {
-  try {
-    const res = await fetch("/api/device/logs/" + deviceId);
-    const data = await res.json();
-
-    const logsDiv = document.getElementById("logs");
-
-    if (!data.logs.length) {
-      logsDiv.innerHTML = "Логов нет";
-      return;
+        document.getElementById("status").innerText = data.online ? "🟢 Online" : "🔴 Offline";
+        document.getElementById("temp").innerText = data.temperature ?? "-";
+        document.getElementById("lastPing").innerText = data.lastPing || "-";
+      } catch (e) {
+        console.error(e);
+        document.getElementById("status").innerText = "Ошибка запроса";
+      }
     }
 
-    logsDiv.innerHTML = data.logs
-      .map(l => `<div>🕒 ${new Date(l.created_at).toLocaleString()} — ${l.message}</div>`)
-      .join("");
+    async function loadLogs() {
+      try {
+        const res = await fetch("/api/admin/device-logs/" + encodeURIComponent(deviceId));
+        const data = await res.json();
 
-  } catch (e) {
-    console.error(e);
-  }
-}
+        const logsDiv = document.getElementById("logs");
 
-async function sendCommand(cmd) {
+        if (!res.ok) {
+          logsDiv.innerHTML = data.error || "Ошибка логов";
+          return;
+        }
 
-  try {
+        if (!data.logs.length) {
+          logsDiv.innerHTML = "Логов нет";
+          return;
+        }
 
-    await fetch("/api/device/command", {
+        logsDiv.innerHTML = data.logs
+          .map(l => `<div>🕒 ${new Date(l.created_at).toLocaleString()} — ${l.message}</div>`)
+          .join("");
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-      method: "POST",
+    async function sendCommand(command) {
+      const res = await fetch("/api/admin/device-command", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          deviceId,
+          command
+        })
+      });
 
-      headers: {
+      const data = await res.json();
 
-        "Content-Type": "application/json"
+      if (!res.ok) {
+        alert(data.error || "Ошибка команды");
+        return;
+      }
 
-      },
+      alert("Команда отправлена: " + command);
+    }
 
-      body: JSON.stringify({
+    loadStatus();
+    loadLogs();
 
-        deviceId: deviceId,
-
-        command: cmd
-
-      })
-
-    });
-
-    alert("Команда отправлена: " + cmd);
-
-  } catch (e) {
-
-    console.error(e);
-
-  }
-
-}
-
-// автообновление каждые 3 сек
-
-setInterval(loadStatus, 3000);
-setInterval(loadLogs, 3000);
-
-// первая загрузка
-
-loadStatus();
-loadLogs();
-</script>
+    setInterval(loadStatus, 3000);
+    setInterval(loadLogs, 5000);
+  </script>
 </body>
 </html>
