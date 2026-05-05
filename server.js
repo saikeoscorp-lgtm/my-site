@@ -436,6 +436,24 @@ app.post("/api/admin/delete-user", requireAdmin, async (req, res) => {
 
 // ===== ESP API =====
 
+app.get("/api/devices", async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+      SELECT device_id, temperature, last_ping
+      FROM devices
+      ORDER BY device_id
+      `
+    );
+
+    res.json({ devices: result.rows });
+
+  } catch (err) {
+    console.error("GET DEVICES ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.post("/api/device/ping", async (req, res) => {
   const { deviceId, token, temperature, message } = req.body;
 
