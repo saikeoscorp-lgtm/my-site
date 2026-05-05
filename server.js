@@ -589,6 +589,58 @@ async function userCanAccessDevice(user, deviceId) {
   return result.rows.length > 0;
 }
 
+app.post("/api/device/register", requireApiAuth, async (req, res) => {
+  const { deviceId, deviceToken } = req.body;
+
+  if (!deviceId || !deviceToken) {
+    return res.status(400).json({ error: "deviceId и deviceToken обязательны" });
+  }
+
+  if (req.apiUser.role !== "admin" && req.apiUser.role !== "viewer") {
+    return res.status(403).json({ error: "Нет прав на привязку устройства" });
+  }
+
+  try {
+    const existing = await db.query(
+      "SELECT * FROM devices WHERE device_id = $1",
+      [deviceId]
+    );
+
+    if (existing.rows.length > 0) {
+      const device = existing.rows[0];
+
+      if (device.user_id && device.user_id !== req.apiUser.id && req.apiUser.role !== "admin") {
+        return res.status(403).json({ error: "Устройство уже привязано к другому пользователю" });
+      }
+
+      await db.query(
+        `
+        UPDATE devices
+        SET user_id = $1,
+            token = $2
+        WHERE device_id = $3
+        `,
+        [req.apiUser.id, deviceToken, deviceId]
+      );
+
+      return res.json({ ok: true, message: "Устройство обновлено и привязано" });
+    }
+
+    await db.query(
+      `
+      INSERT INTO devices (device_id, token, user_id, status)
+      VALUES ($1, $2, $3, 'offline')
+      `,
+      [deviceId, deviceToken, req.apiUser.id]
+    );
+
+    res.json({ ok: true, message: "Устройство создано и привязано" });
+  } catch (err) {
+    console.error("DEVICE REGISTER ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 // ===== ESP API =====
 
 app.get("/api/devices", requireApiAuth, async (req, res) => {
