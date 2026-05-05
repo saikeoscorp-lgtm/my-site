@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const db = require("./db");
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 
 
 const app = express();
@@ -18,6 +19,13 @@ function makeCode() {
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: "Слишком много попыток входа. Попробуйте позже"
+  }
+});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "curva_plyad_mat",
@@ -170,7 +178,7 @@ app.post("/api/verify-email", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("/login", loginLimiter, async (req, res) => {
   const { login, password } = req.body;
 
   if (!login || !password) {
@@ -497,7 +505,7 @@ function requireApiAdmin(req, res, next) {
   next();
 }
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", loginLimiter, async (req, res) => {
   const { login, password } = req.body;
 
   if (!login || !password) {
