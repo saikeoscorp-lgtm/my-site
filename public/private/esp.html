@@ -50,6 +50,9 @@
 	</div>
 
 <script>
+const params = new URLSearchParams(window.location.search);
+const deviceId = params.get("device") || "esp-001";
+
 async function loadStatus() {
 
   try {
