@@ -72,6 +72,27 @@ async function loadStatus() {
 
 }
 
+async function loadLogs() {
+  try {
+    const res = await fetch("/api/device/logs/esp-001");
+    const data = await res.json();
+
+    const logsDiv = document.getElementById("logs");
+
+    if (!data.logs.length) {
+      logsDiv.innerHTML = "Логов нет";
+      return;
+    }
+
+    logsDiv.innerHTML = data.logs
+      .map(l => `<div>🕒 ${new Date(l.created_at).toLocaleString()} — ${l.message}</div>`)
+      .join("");
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 async function sendCommand(cmd) {
 
   try {
