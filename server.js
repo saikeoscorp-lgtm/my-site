@@ -900,7 +900,7 @@ app.get("/api/admin/devices", requireAdmin, async (req, res) => {
         users.username,
         users.email
       FROM devices
-      LEFT JOIN users ON users.id = device.user_id
+      LEFT JOIN users ON users.id = devices.user_id
       ORDER BY devices.id
     `);
 
