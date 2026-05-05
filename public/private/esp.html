@@ -43,7 +43,69 @@
 	</div>
 
 <script>
+async function loadStatus() {
 
+  try {
+
+    const res = await fetch("/api/device/status/esp-001");
+
+    const data = await res.json();
+
+    document.getElementById("status").innerText = data.online ? "🟢 Online" : "🔴 Offline";
+
+    document.getElementById("temp").innerText = data.temperature || "-";
+
+    document.getElementById("lastPing").innerText = data.lastPing || "-";
+
+  } catch (e) {
+
+    console.error(e);
+
+  }
+
+}
+
+async function sendCommand(cmd) {
+
+  try {
+
+    await fetch("/api/device/command", {
+
+      method: "POST",
+
+      headers: {
+
+        "Content-Type": "application/json"
+
+      },
+
+      body: JSON.stringify({
+
+        deviceId: "esp-001",
+
+        command: cmd
+
+      })
+
+    });
+
+    alert("Команда отправлена: " + cmd);
+
+  } catch (e) {
+
+    console.error(e);
+
+  }
+
+}
+
+// автообновление каждые 3 сек
+
+setInterval(loadStatus, 3000);
+
+// первая загрузка
+
+loadStatus();
 </script>
 </body>
 </html>
