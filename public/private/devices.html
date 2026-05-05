@@ -1,0 +1,39 @@
+<div class="container">
+  <h1>Устройства</h1>
+
+  <div id="devices"></div>
+</div>
+
+<script>
+async function loadDevices() {
+  const res = await fetch("/api/devices");
+  const data = await res.json();
+
+  const container = document.getElementById("devices");
+
+  container.innerHTML = data.devices.map(d => {
+    const online =
+      d.last_ping &&
+      new Date() - new Date(d.last_ping) < 30000;
+
+    return `
+      <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+        <h3>${d.device_id}</h3>
+        <p>Статус: ${online ? "🟢 Online" : "🔴 Offline"}</p>
+        <p>Температура: ${d.temperature || "-"}</p>
+
+        <button onclick="openDevice('${d.device_id}')">
+          Открыть
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function openDevice(id) {
+  window.location.href = "/esp.html?device=" + id;
+}
+
+setInterval(loadDevices, 3000);
+loadDevices();
+</script>
