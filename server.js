@@ -7,6 +7,11 @@ const db = require("./db");
 const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
 
+const deviceLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: "Too many requests" }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -687,7 +692,7 @@ app.get("/api/devices", requireApiAuth, async (req, res) => {
   }
 });
 
-app.post("/api/device/ping", async (req, res) => {
+app.post("/api/device/ping", deviceLimiter, async (req, res) => {
   const { deviceId, token, temperature, message } = req.body;
 
   if (!deviceId || !token) {
