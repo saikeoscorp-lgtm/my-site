@@ -434,6 +434,161 @@ app.post("/api/admin/delete-user", requireAdmin, async (req, res) => {
   }
 });
 
+// ===== ESP API =====
+
+app.post("/api/device/ping", async (req, res) => {
+  const { deviceId, token, temperature, message } = req.body;
+
+  if (!deviceId || !token) {
+    return res.status(400).json({ error: "deviceId и token обязательны" });
+  }
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM devices WHERE device_id = $1",
+      [deviceId]
+    );
+
+    const device = result.rows[0];
+
+    if (!device || device.token !== token) {
+      return res.status(403).json({ error: "Неверный токен" });
+    }
+
+    // обновляем статус
+    await db.query(
+      `
+      UPDATE devices
+      SET status = 'online',
+          temperature = $1,
+          last_ping = NOW()
+      WHERE device_id = $2
+      `,
+      [temperature || null, deviceId]
+    );
+
+    // лог
+    if (message) {
+      await db.query(
+        `
+        INSERT INTO device_logs (device_id, message)
+        VALUES ($1, $2)
+        `,
+        [deviceId, message]
+      );
+    }
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error("PING ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+
+app.get("/api/device/status/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM devices WHERE device_id = $1",
+      [deviceId]
+    );
+
+    const device = result.rows[0];
+
+    if (!device) {
+      return res.status(404).json({ error: "Устройство не найдено" });
+    }
+
+    const online =
+      device.last_ping &&
+      new Date() - new Date(device.last_ping) < 30000;
+
+    res.json({
+      deviceId: device.device_id,
+      online,
+      temperature: device.temperature,
+      lastPing: device.last_ping
+    });
+
+  } catch (err) {
+    console.error("STATUS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+
+app.post("/api/device/command", async (req, res) => {
+  const { deviceId, command } = req.body;
+
+  if (!deviceId || !command) {
+    return res.status(400).json({ error: "deviceId и command обязательны" });
+  }
+
+  try {
+    await db.query(
+      `
+      INSERT INTO device_commands (device_id, command)
+      VALUES ($1, $2)
+      `,
+      [deviceId, command]
+    );
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error("COMMAND ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+
+app.get("/api/device/commands/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+  const { token } = req.query;
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM devices WHERE device_id = $1",
+      [deviceId]
+    );
+
+    const device = result.rows[0];
+
+    if (!device || device.token !== token) {
+      return res.status(403).json({ error: "Неверный токен" });
+    }
+
+    const commands = await db.query(
+      `
+      SELECT id, command
+      FROM device_commands
+      WHERE device_id = $1 AND is_done = false
+      ORDER BY id
+      `,
+      [deviceId]
+    );
+
+    // помечаем выполненными
+    await db.query(
+      `
+      UPDATE device_commands
+      SET is_done = true
+      WHERE device_id = $1 AND is_done = false
+      `,
+      [deviceId]
+    );
+
+    res.json({ commands: commands.rows });
+
+  } catch (err) {
+    console.error("GET COMMANDS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
