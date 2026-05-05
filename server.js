@@ -589,6 +589,28 @@ app.get("/api/device/commands/:deviceId", async (req, res) => {
   }
 });
 
+app.get("/api/device/logs/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT message, created_at
+      FROM device_logs
+      WHERE device_id = $1
+      ORDER BY created_at DESC
+      LIMIT 50
+      `,
+      [deviceId]
+    );
+
+    res.json({ logs: result.rows });
+  } catch (err) {
+    console.error("DEVICE LOGS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
