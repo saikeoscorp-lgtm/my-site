@@ -958,6 +958,59 @@ app.post("/api/admin/device-command", requireAdmin, async (req, res) => {
   }
 });
 
+app.get("/api/admin/device-status/:deviceId", requireAdmin, async (req, res) => {
+  const { deviceId } = req.params;
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM devices WHERE device_id = $1",
+      [deviceId]
+    );
+
+    const device = result.rows[0];
+
+    if (!device) {
+      return res.status(404).json({ error: "Устройство не найдено" });
+    }
+
+    const online =
+      device.last_ping &&
+      new Date() - new Date(device.last_ping) < 30000;
+
+    res.json({
+      deviceId: device.device_id,
+      online,
+      temperature: device.temperature,
+      lastPing: device.last_ping
+    });
+  } catch (err) {
+    console.error("ADMIN DEVICE STATUS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+app.get("/api/admin/device-logs/:deviceId", requireAdmin, async (req, res) => {
+  const { deviceId } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT message, created_at
+      FROM device_logs
+      WHERE device_id = $1
+      ORDER BY created_at DESC
+      LIMIT 50
+      `,
+      [deviceId]
+    );
+
+    res.json({ logs: result.rows });
+  } catch (err) {
+    console.error("ADMIN DEVICE LOGS ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
