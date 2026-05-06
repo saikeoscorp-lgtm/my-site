@@ -6,6 +6,8 @@ const path = require("path");
 const db = require("./db");
 const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
+const fs = require("fs");
+const multer = require("multer");
 
 const deviceLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -14,6 +16,41 @@ const deviceLimiter = rateLimit({
 });
 
 const app = express();
+
+const uploadsDir = path.join(__dirname, "public", "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const safeExt = [".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext)
+      ? ext
+      : ".png";
+
+    cb(null, `${req.session.user.id}_${Date.now()}${safeExt}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024
+  },
+  fileFilter: function (req, file, cb) {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Можно загружать только изображения"));
+    }
+
+    cb(null, true);
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -1074,6 +1111,58 @@ app.post("/api/profile/update", async (req, res) => {
 
     console.error("PROFILE UPDATE ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+app.post("/api/profile/upload-image", upload.single("image"), async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
+
+  const { type } = req.body;
+
+  if (!req.file) {
+    return res.status(400).json({ error: "Файл не загружен" });
+  }
+
+  if (type !== "avatar" && type !== "banner") {
+    return res.status(400).json({ error: "Неверный тип изображения" });
+  }
+
+  const imagePath = "/uploads/" + req.file.filename;
+
+  try {
+    if (type === "avatar") {
+      await db.query(
+        `
+        UPDATE users
+        SET avatar_url = $1,
+            avatar_data = ''
+        WHERE id = $2
+        `,
+        [imagePath, req.session.user.id]
+      );
+    }
+
+    if (type === "banner") {
+      await db.query(
+        `
+        UPDATE users
+        SET banner_url = $1,
+            banner_data = ''
+        WHERE id = $2
+        `,
+        [imagePath, req.session.user.id]
+      );
+    }
+
+    res.json({
+      ok: true,
+      url: imagePath
+    });
+  } catch (err) {
+    console.error("UPLOAD IMAGE ERROR:", err);
+    res.status(500).json({ error: "Ошибка загрузки изображения" });
   }
 });
 
