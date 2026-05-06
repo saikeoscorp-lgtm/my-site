@@ -250,10 +250,10 @@
         email: document.getElementById("emailInput").value.trim(),
         bio: document.getElementById("bioInput").value,
         avatar_url: document.getElementById("avatarInput").value.trim(),
-        avatar_data: avatarData || "",
+        avatar_data: "",
         banner_url: document.getElementById("bannerInput").value.trim(),
-        banner_data: bannerData || ""
-      };
+        banner_data: ""
+    };
 
       if (!payload.username || !payload.email) {
         setStatus("Логин и email обязательны");
