@@ -184,9 +184,13 @@ label {
 }
 
 #avatarPreview {
+  width: 130px;
+  height: 130px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--accent);
+  max-width: none;
 }
 
 /* admin */
