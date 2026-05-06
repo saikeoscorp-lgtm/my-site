@@ -989,6 +989,73 @@ app.get("/api/admin/device-logs/:deviceId", requireAdmin, async (req, res) => {
   }
 });
 
+app.post("/api/profile/update", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Сначала войди в аккаунт" });
+  }
+
+  const {
+    username,
+    email,
+    bio,
+    avatar_url,
+    avatar_data,
+    banner_url,
+    banner_data
+  } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: "Логин и email обязательны" });
+  }
+
+  try {
+    const result = await db.query(
+      `
+      UPDATE users
+      SET username = $1,
+          email = $2,
+          bio = $3,
+          avatar_url = $4,
+          avatar_data = $5,
+          banner_url = $6,
+          banner_data = $7
+      WHERE id = $8
+      RETURNING id, username, email, role, bio,
+                avatar_url, avatar_data,
+                banner_url, banner_data
+      `,
+      [
+        username,
+        email,
+        bio || "",
+        avatar_url || "",
+        avatar_data || "",
+        banner_url || "",
+        banner_data || "",
+        req.session.user.id
+      ]
+    );
+
+    const user = result.rows[0];
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
+
+    res.json({ message: "Профиль сохранён", user });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(400).json({ error: "Такой логин или email уже занят" });
+    }
+
+    console.error("PROFILE UPDATE ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server started on port ${PORT}`);
 });
