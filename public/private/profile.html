@@ -99,6 +99,7 @@
 
   <script>
     let avatarData = "";
+    let bannerData = "";
 
     function setStatus(text) {
       document.getElementById("status").textContent = text;
@@ -132,13 +133,15 @@
         document.getElementById("emailInput").value = user.email || "";
         document.getElementById("bioInput").value = user.bio || "";
         document.getElementById("avatarInput").value = user.avatar_url || "";
-
+        document.getElementById("bannerInput").value = user.banner_url || "";
+        bannerData = user.banner_data || "";
         avatarData = user.avatar_data || "";
 
         document.getElementById("avatarPreview").src =
           user.avatar_data ||
           user.avatar_url ||
           "/image/no_avatar.svg";
+    
 
       } catch (err) {
         console.error(err);
@@ -154,6 +157,33 @@
         document.getElementById("avatarPreview").src = avatarData || "/image/no_avatar.svg";
       }
     });
+    
+    document.getElementById("bannerInput").addEventListener("input", function () {
+  if (this.value.trim()) {
+    bannerData = "";
+  }
+});
+
+document.getElementById("bannerFileInput").addEventListener("change", function () {
+  const file = this.files[0];
+
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert("Баннер слишком большой. Максимум 2 МБ");
+    this.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    bannerData = reader.result;
+    document.getElementById("bannerInput").value = "";
+  };
+
+  reader.readAsDataURL(file);
+});
 
     document.getElementById("avatarFileInput").addEventListener("change", function () {
       const file = this.files[0];
@@ -179,14 +209,15 @@
 
     document.getElementById("saveBtn").onclick = async function () {
       const payload = {
-        username: document.getElementById("usernameInput").value.trim(),
-        email: document.getElementById("emailInput").value.trim(),
-        bio: document.getElementById("bioInput").value,
-        avatar_url: document.getElementById("avatarInput").value.trim(),
-        banner_url: document.getElementById("bannerInput").value.trim(),
-banner_data: bannerData || ""
-        avatar_data: avatarData || ""
-      };
+        const payload = {
+  username: document.getElementById("usernameInput").value.trim(),
+  email: document.getElementById("emailInput").value.trim(),
+  bio: document.getElementById("bioInput").value,
+  avatar_url: document.getElementById("avatarInput").value.trim(),
+  avatar_data: avatarData || "",
+  banner_url: document.getElementById("bannerInput").value.trim(),
+  banner_data: bannerData || ""
+};
 
       if (!payload.username || !payload.email) {
         setStatus("Логин и email обязательны");
