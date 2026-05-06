@@ -256,7 +256,9 @@ app.get("/api/me", async (req, res) => {
   try {
     const result = await db.query(
       `
-      SELECT id, username, email, role, bio, avatar_url, avatar_data
+      SELECT id, username, email, role, bio,
+avatar_url, avatar_data,
+banner_url, banner_data
       FROM users
       WHERE id = $1
       `,
@@ -286,12 +288,14 @@ app.post("/api/profile/update", async (req, res) => {
       `
       UPDATE users
       SET username = $1,
-          email = $2,
-          bio = $3,
-          avatar_url = $4,
-          avatar_data = $5
+    email = $2,
+    bio = $3,
+    avatar_url = $4,
+    avatar_data = $5,
+    banner_url = $6,
+    banner_data = $7
       WHERE id = $6
-      RETURNING id, username, email, role, bio, avatar_url, avatar_data
+      RETURNING id, username, email, role, bio, avatar_url, avatar_data, banner_url, banner_data
       `,
       [
         username,
