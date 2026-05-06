@@ -245,3 +245,77 @@ button.danger:hover {
 	100% { opacity: 0.5;}
 }
 
+/* ===== MOBILE ADAPTIVE ===== */
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .top-bar-left {
+    width: 100%;
+  }
+
+  .butt-top-right {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .button-top {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+
+  .container {
+    width: calc(100% - 32px);
+    margin: 24px auto;
+    padding: 22px;
+  }
+
+  .card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  h2 {
+    font-size: 26px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    width: calc(100% - 20px);
+    padding: 18px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  .button-top {
+    font-size: 14px;
+  }
+}
