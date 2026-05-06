@@ -11,9 +11,6 @@
 </head>
 
 <body>
-
-  <!-- HEADER -->
-
   <div class="topbar">
     <div class="top-bar-left">
       <a href="/index.html">
@@ -29,32 +26,16 @@
     </div>
   </div>
 
-  <!-- PROFILE -->
-
   <div class="container">
-
-    <div id="status" class="status-box loading">
-      Загрузка профиля...
-    </div>
+    <div id="status" class="status-box loading">Загрузка профиля...</div>
 
     <div id="profileBox" style="display:none;">
-
-      <!-- banner -->
-
       <div class="public-profile-banner">
-        <img
-          id="bannerImage"
-          src="/image/fa&te.svg"
-          alt="banner"
-        >
+        <img id="bannerImage" src="/image/fa&te.svg" alt="banner">
       </div>
 
-      <!-- top info -->
-
       <div class="public-profile-top">
-
         <div class="public-profile-left">
-
           <img
             id="avatarPreview"
             src="/image/no_avatar.svg"
@@ -64,70 +45,35 @@
 
           <div class="public-user-info">
             <h1 id="profileName">User</h1>
+
             <div id="achievementBadges" class="achievement-badges"></div>
 
-          <div class="public-role">
- <span id="userRole">user</span>
-</div>
-          
+            <div class="public-role">
+              <span id="userRole">user</span>
+            </div>
           </div>
-
         </div>
 
         <div class="public-profile-right">
-          <button id="shareBtn">
+          <button id="shareBtn" type="button">
             Поделиться профилем
           </button>
         </div>
-
       </div>
-
-      <!-- bio -->
 
       <div class="card">
         <h2>О пользователе</h2>
-
-        <p id="userBio">
-          Пользователь пока ничего не написал о себе.
-        </p>
+        <p id="userBio">Пользователь пока ничего не написал о себе.</p>
       </div>
-
-      <!-- achievements -->
-
-      <div class="card">
-        <h2>Награды / достижения</h2>
-
-        <div class="achievement-grid">
-
-          <div class="achievement-card">
-            Soon...
-          </div>
-
-          <div class="achievement-card">
-            Soon...
-          </div>
-
-          <div class="achievement-card">
-            Soon...
-          </div>
-
-        </div>
-      </div>
-
     </div>
-
   </div>
 
   <script>
-
     const params = new URLSearchParams(window.location.search);
-
     const username = params.get("name");
 
     async function loadPublicProfile() {
-
       const status = document.getElementById("status");
-
       const profileBox = document.getElementById("profileBox");
 
       if (!username) {
@@ -136,7 +82,6 @@
       }
 
       try {
-
         const res = await fetch(
           "/api/public/profile/" + encodeURIComponent(username)
         );
@@ -149,23 +94,7 @@
         }
 
         const user = data.user;
-        
-       const achievements = data.achievements || [];
-const badgesBox = document.getElementById("achievementBadges");
-
-if (achievements.length === 0) {
-  badgesBox.innerHTML = "";
-} else {
-  badgesBox.innerHTML = achievements.map(a => `
-    <div class="achievement-badge" title="${a.title || ""}">
-      <img src="${a.icon_url  "/image/achievements/default.svg"}" alt="${a.title  "achievement"}">
-    </div>
-  `).join("");
-}
-
-        profileBox.style.display = "block";
-
-        status.style.display = "none";
+        const achievements = data.achievements || [];
 
         document.getElementById("profileName").textContent =
           user.username || "Unknown";
@@ -173,49 +102,56 @@ if (achievements.length === 0) {
         document.getElementById("userRole").textContent =
           user.role || "user";
 
-
         document.getElementById("userBio").textContent =
           user.bio || "Пользователь пока ничего не написал о себе.";
 
         document.getElementById("avatarPreview").src =
-          user.avatar_data ||
           user.avatar_url ||
+          user.avatar_data ||
           "/image/no_avatar.svg";
-          
-          document.getElementById("bannerImage").src =
-  user.banner_data ||
-  user.banner_url ||
-  "/image/fa&te.svg";
+
+        document.getElementById("bannerImage").src =
+          user.banner_url ||
+          user.banner_data ||
+          "/image/fa&te.svg";
+
+        const badgesBox = document.getElementById("achievementBadges");
+
+        badgesBox.innerHTML = achievements.map(a => {
+          const icon = a.icon_url || "/image/achievements/default.svg";
+          const title = a.title || "achievement";
+          const description = a.description || "";
+
+          return `
+            <img
+              class="achievement-badge"
+              src="${icon}"
+              alt="${title}"
+              title="${title}${description ? " — " + description : ""}"
+            >
+          `;
+        }).join("");
+
+        status.style.display = "none";
+        profileBox.style.display = "block";
 
       } catch (err) {
-
         console.error(err);
-
         status.textContent = "Ошибка сервера";
-
       }
-
     }
 
-    document.getElementById("shareBtn").onclick = async function () {
-
+    document.
+[5/6/2026 10:04 PM] Владислав: getElementById("shareBtn").onclick = async function () {
       try {
-
         await navigator.clipboard.writeText(window.location.href);
-
         alert("Ссылка скопирована");
-
       } catch (e) {
-
         alert("Не удалось скопировать ссылку");
-
       }
-
     };
 
     loadPublicProfile();
-
   </script>
-
 </body>
 </html>
