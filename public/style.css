@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 body {
 	margin: 0;
 	font-family: Arial, sans-serif;
@@ -88,11 +92,11 @@ a {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	gap: 16px;
-	margin-top 20px;
+	margin-top: 20px;
 }
 
 .card {
-	background: #qf2937;
+	background: #1f2937;
 	border: 1px solid #374151;
 	border-radius: 20px;
 	padding: 20px;
@@ -133,7 +137,7 @@ button.secondary:hover {
 }
 
 .button-top {
-	padding: auto;
+	padding: 10px 14px;
 	color: floralwhite;
 	margin-right: 20px;
 	font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -159,7 +163,6 @@ button.secondary:hover {
 }
 
 .butt-top-right {
-	float: right;
 	display: flex;
 	color: #ffffff;
 	padding: 5px;
