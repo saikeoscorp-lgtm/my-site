@@ -942,9 +942,9 @@ app.get("/api/public/profile/:username", async (req, res) => {
   const { username } = req.params;
 
   try {
-    const result = await db.query(
+    const userResult = await db.query(
       `
-      SELECT username, role, bio,
+      SELECT id, username, role, bio,
              avatar_url, avatar_data,
              banner_url, banner_data
       FROM users
@@ -954,19 +954,40 @@ app.get("/api/public/profile/:username", async (req, res) => {
       [username]
     );
 
-    const user = result.rows[0];
+    const user = userResult.rows[0];
 
     if (!user) {
       return res.status(404).json({ error: "Профиль не найден" });
     }
 
-    res.json({ user });
+    const achievementsResult = await db.query(
+      `
+      SELECT 
+        achievements.code,
+        achievements.title,
+        achievements.description,
+        achievements.icon_url,
+        achievements.rarity,
+        user_achievements.unlocked_at
+      FROM user_achievements
+      JOIN achievements ON achievements.id = user_achievements.achievement_id
+      WHERE user_achievements.user_id = $1
+      ORDER BY user_achievements.unlocked_at ASC
+      `,
+      [user.id]
+    );
+
+    delete user.id;
+
+    res.json({
+      user,
+      achievements: achievementsResult.rows
+    });
   } catch (err) {
     console.error("PUBLIC PROFILE ERROR:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
-
 app.get("/api/admin/device-logs/:deviceId", requireAdmin, async (req, res) => {
   const { deviceId } = req.params;
 
