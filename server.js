@@ -989,6 +989,33 @@ app.get("/api/admin/device-status/:deviceId", requireAdmin, async (req, res) => 
   }
 });
 
+app.get("/api/public/profile/:username", async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT id, username, role, bio, avatar_url, avatar_data
+      FROM users
+      WHERE username = $1
+      LIMIT 1
+      `,
+      [username]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(404).json({ error: "Профиль не найден" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error("PUBLIC PROFILE ERROR:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
 app.get("/api/admin/device-logs/:deviceId", requireAdmin, async (req, res) => {
   const { deviceId } = req.params;
 
