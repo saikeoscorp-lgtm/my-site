@@ -157,10 +157,11 @@ if (achievements.length === 0) {
   badgesBox.innerHTML = "";
 } else {
   badgesBox.innerHTML = achievements.map(a => `
-    <div class="achievement-badge ${a.rarity || "common"}" title="${a.title} — ${a.description || ""}">
-      <img src="${a.icon_url || "/image/achievements/default.png"}" alt="${a.title}">
-    </div>
-  `).join("");
+    badgesBox.innerHTML = achievements.map(a => `
+  <div class="achievement-badge" title="${a.title}">
+    <img src="${a.icon_url}" alt="${a.title}">
+  </div>
+`).join("");
 }
 
         profileBox.style.display = "block";
