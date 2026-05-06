@@ -68,10 +68,6 @@
             <div class="public-role">
               <span id="userRole">user</span>
             </div>
-
-            <div class="public-id">
-              ID: <span id="userId"></span>
-            </div>
           </div>
 
         </div>
@@ -162,8 +158,6 @@
         document.getElementById("userRole").textContent =
           user.role || "user";
 
-        document.getElementById("userId").textContent =
-          user.id || "-";
 
         document.getElementById("userBio").textContent =
           user.bio || "Пользователь пока ничего не написал о себе.";
