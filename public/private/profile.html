@@ -110,6 +110,8 @@
         }
 
         const user = data.user;
+        document.getElementById("publicProfileLink").href =
+  "/user.html?name=" + encodeURIComponent(user.username);
 
         setStatus("Профиль загружен");
         card.style.display = "block";
