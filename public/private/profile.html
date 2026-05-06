@@ -73,6 +73,12 @@
 
         <label for="avatarFileInput">Или загрузить фото</label>
         <input id="avatarFileInput" type="file" accept="image/*">
+          
+          <label for="bannerInput">Баннер URL</label>
+<input id="bannerInput" type="text" placeholder="https://example.com/banner.png">
+
+<label for="bannerFileInput">Загрузить баннер</label>
+<input id="bannerFileInput" type="file" accept="image/*">
 
         <p style="color:#9ca3af;">Максимальный размер файла: 2 МБ</p>
       </div>
@@ -175,6 +181,8 @@
         email: document.getElementById("emailInput").value.trim(),
         bio: document.getElementById("bioInput").value,
         avatar_url: document.getElementById("avatarInput").value.trim(),
+        banner_url: document.getElementById("bannerInput").value.trim(),
+banner_data: bannerData || ""
         avatar_data: avatarData || ""
       };
 
