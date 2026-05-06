@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/favicon.svg" type="image/x-icon" />
+  <link rel="icon" href="/image/favicon.svg" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Профиль</title>
   <link rel="stylesheet" href="/style.css" />
@@ -17,67 +17,86 @@
     </div>
 
     <div class="butt-top-right">
-      <a href="/private/docs.html" class="button-top" id="docsBtn"><b>!docs</b></a>
-      <a href="/private/admin.html" class="button-top" id="adminBtn"><b>Админка</b></a>
-      <a href="/login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
-      <a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
+      <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
+      <a href="/private/admin.html" class="button-top"><b>Админка</b></a>
+      <a href="/private/devices.html" class="button-top"><b>ESP</b></a>
+      <a href="/login.html" class="button-top"><b>Вход</b></a>
     </div>
   </div>
 
   <div class="container">
     <img src="/image/fa&te.svg" alt="Korvin" width="700" height="100">
 
-    <center><h1>Профиль</h1></center>
+    <h1>Профиль</h1>
 
     <div id="status" class="status-box">Ожидание...</div>
 
-    <div class="card" id="profileCard" style="display:none;">
-      <center>
-        <img
-          id="avatarPreview"
-          src="/image/no_avatar.svg"
-          alt="avatar"
-          width="120"
-          height="120"
-          style="border-radius:50%; object-fit:cover; border:2px solid #555;"
-        >
-      </center>
+    <div id="profileCard" style="display:none;">
 
-      <p><b>ID:</b> <span id="userId"></span></p>
-      <p><b>Роль:</b> <span id="userRole"></span></p>
+      <div class="card">
+        <center>
+          <img
+            id="avatarPreview"
+            src="/image/no_avatar.svg"
+            alt="avatar"
+            width="130"
+            height="130"
+            style="border-radius:50%; object-fit:cover; border:3px solid #f2b759;"
+          >
 
-      <label for="usernameInput">Логин</label>
-      <input id="usernameInput" type="text" placeholder="Логин">
+          <h2 id="profileName">Пользователь</h2>
+          <p><b>ID:</b> <span id="userId"></span></p>
+          <p><b>Роль:</b> <span id="userRole"></span></p>
+        </center>
+      </div>
 
-      <label for="emailInput">Email</label>
-      <input id="emailInput" type="email" placeholder="Email">
+      <div class="card">
+        <h3>Основная информация</h3>
 
-      <label for="avatarInput">Фото профиля URL</label>
-      <input id="avatarInput" type="text" placeholder="https://example.com/avatar.png">
+        <label for="usernameInput">Логин</label>
+        <input id="usernameInput" type="text" placeholder="Логин">
 
-      <label for="avatarFileInput">Загрузить фото</label>
-      <input id="avatarFileInput" type="file" accept="image/*">
+        <label for="emailInput">Email</label>
+        <input id="emailInput" type="email" placeholder="Email">
 
-      <label for="bioInput">О себе</label>
-      <textarea id="bioInput" rows="4" placeholder="Расскажи о себе"></textarea>
-      
-      <p></p>
+        <label for="bioInput">О себе</label>
+        <textarea id="bioInput" rows="4" placeholder="Расскажи о себе"></textarea>
 
-      <input id="oldPassword" type="password" placeholder="Старый пароль">
-<input id="newPassword" type="password" placeholder="Новый пароль">
-<button type="button" id="changePasswordBtn">Сменить пароль</button>
+        <button type="button" id="saveBtn">Сохранить профиль</button>
+      </div>
 
-      <br><br>
+      <div class="card">
+        <h3>Фото профиля</h3>
 
-      <button type="button" id="saveBtn">Сохранить</button>
+        <label for="avatarInput">Фото по URL</label>
+        <input id="avatarInput" type="text" placeholder="https://example.com/avatar.png">
+
+        <label for="avatarFileInput">Или загрузить фото</label>
+        <input id="avatarFileInput" type="file" accept="image/*">
+
+        <p style="color:#9ca3af;">Максимальный размер файла: 2 МБ</p>
+      </div>
+
+      <div class="card">
+        <h3>Смена пароля</h3>
+
+        <input id="oldPassword" type="password" placeholder="Старый пароль">
+        <input id="newPassword" type="password" placeholder="Новый пароль">
+
+        <button type="button" id="changePasswordBtn">Сменить пароль</button>
+      </div>
+
     </div>
   </div>
 
   <script>
     let avatarData = "";
 
+    function setStatus(text) {
+      document.getElementById("status").textContent = text;
+    }
+
     async function loadProfile() {
-      const status = document.getElementById("status");
       const card = document.getElementById("profileCard");
 
       try {
@@ -85,18 +104,19 @@
         const data = await res.json();
 
         if (!data.user) {
-          status.textContent = "Ты не вошёл в аккаунт";
+          setStatus("Ты не вошёл в аккаунт");
           card.style.display = "none";
           return;
         }
 
         const user = data.user;
 
-        status.textContent = "Профиль загружен";
+        setStatus("Профиль загружен");
         card.style.display = "block";
 
         document.getElementById("userId").textContent = user.id;
         document.getElementById("userRole").textContent = user.role;
+        document.getElementById("profileName").textContent = user.username || "Пользователь";
 
         document.getElementById("usernameInput").value = user.username || "";
         document.getElementById("emailInput").value = user.email || "";
@@ -112,53 +132,18 @@
 
       } catch (err) {
         console.error(err);
-        status.textContent = "Ошибка загрузки профиля";
+        setStatus("Ошибка загрузки профиля");
       }
     }
 
     document.getElementById("avatarInput").addEventListener("input", function () {
-      if (this.value) {
+      if (this.value.trim()) {
         avatarData = "";
-        document.getElementById("avatarPreview").src = this.value;
+        document.getElementById("avatarPreview").src = this.value.trim();
       } else {
         document.getElementById("avatarPreview").src = avatarData || "/image/no_avatar.svg";
       }
     });
-    
-    const changePasswordBtn = document.getElementById("changePasswordBtn");
-
-if (changePasswordBtn) {
-  changePasswordBtn.onclick = async function () {
-    const status = document.getElementById("status");
-
-    const payload = {
-      oldPassword: document.getElementById("oldPassword").value,
-      newPassword: document.getElementById("newPassword").value
-    };
-
-    status.textContent = "Меняю пароль...";
-
-    const res = await fetch("/api/change-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      status.textContent = data.error || "Ошибка смены пароля";
-      return;
-    }
-
-    status.textContent = "Пароль изменён";
-    alert("Пароль изменён");
-  };
-}
-
-loadProfile();
 
     document.getElementById("avatarFileInput").addEventListener("change", function () {
       const file = this.files[0];
@@ -181,12 +166,8 @@ loadProfile();
 
       reader.readAsDataURL(file);
     });
-    
+
     document.getElementById("saveBtn").onclick = async function () {
-      const status = document.getElementById("status");
-
-      status.textContent = "Сохраняю...";
-
       const payload = {
         username: document.getElementById("usernameInput").value.trim(),
         email: document.getElementById("emailInput").value.trim(),
@@ -195,7 +176,14 @@ loadProfile();
         avatar_data: avatarData || ""
       };
 
+      if (!payload.username || !payload.email) {
+        setStatus("Логин и email обязательны");
+        return;
+      }
+
       try {
+        setStatus("Сохраняю...");
+
         const res = await fetch("/api/profile/update", {
           method: "POST",
           headers: {
@@ -207,19 +195,60 @@ loadProfile();
         const data = await res.json();
 
         if (!res.ok) {
-          status.textContent = data.error || "Ошибка сохранения";
+          setStatus(data.error || "Ошибка сохранения");
           alert(data.error || "Ошибка сохранения");
           return;
         }
 
-        status.textContent = "Профиль сохранён";
-        alert("Сохранено");
+        setStatus("Профиль сохранён");
         await loadProfile();
 
       } catch (err) {
         console.error(err);
-        status.textContent = "Ошибка запроса";
-        alert("Ошибка запроса");
+        setStatus("Ошибка запроса");
+      }
+    };
+
+    document.getElementById("changePasswordBtn").onclick = async function () {
+      const oldPassword = document.getElementById("oldPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+
+      if (!oldPassword || !newPassword) {
+        setStatus("Заполни оба поля пароля");
+        return;
+      }
+
+      if (newPassword.length < 5) {
+        setStatus("Новый пароль слишком короткий");
+        return;
+      }
+
+      try {
+        setStatus("Меняю пароль...");
+
+        const res = await fetch("/api/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setStatus(data.error || "Ошибка смены пароля");
+          return;
+        }
+
+        document.getElementById("oldPassword").value = "";
+        document.getElementById("newPassword").value = "";
+
+        setStatus("Пароль изменён");
+
+      } catch (err) {
+        console.error(err);
+        setStatus("Ошибка запроса");
       }
     };
 
