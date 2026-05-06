@@ -106,13 +106,13 @@
           user.bio || "Пользователь пока ничего не написал о себе.";
 
         document.getElementById("avatarPreview").src =
-          user.avatar_data ||
           user.avatar_url ||
+          user.avatar_data ||
           "/image/no_avatar.svg";
 
         document.getElementById("bannerImage").src =
-          user.banner_data ||
           user.banner_url ||
+          user.banner_data ||
           "/image/fa&te.svg";
 
         const badgesBox = document.getElementById("achievementBadges");
