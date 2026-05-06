@@ -988,6 +988,7 @@ app.get("/api/public/profile/:username", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+
 app.get("/api/admin/device-logs/:deviceId", requireAdmin, async (req, res) => {
   const { deviceId } = req.params;
 
