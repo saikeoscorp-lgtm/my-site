@@ -291,7 +291,6 @@ label {
 
   .profile-layout .card:first-child {
     grid-row: span 3;
-    position: sticky;
     top: 24px;
   }
 
