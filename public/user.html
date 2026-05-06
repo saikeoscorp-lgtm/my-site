@@ -150,18 +150,17 @@
 
         const user = data.user;
         
-        const achievements = data.achievements || [];
+       const achievements = data.achievements || [];
 const badgesBox = document.getElementById("achievementBadges");
 
 if (achievements.length === 0) {
   badgesBox.innerHTML = "";
 } else {
   badgesBox.innerHTML = achievements.map(a => `
-    badgesBox.innerHTML = achievements.map(a => `
-  <div class="achievement-badge" title="${a.title}">
-    <img src="${a.icon_url}" alt="${a.title}">
-  </div>
-`).join("");
+    <div class="achievement-badge" title="${a.title || ""}">
+      <img src="${a.icon_url  "/image/achievements/default.svg"}" alt="${a.title  "achievement"}">
+    </div>
+  `).join("");
 }
 
         profileBox.style.display = "block";
