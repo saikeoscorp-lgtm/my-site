@@ -294,7 +294,7 @@ app.post("/api/profile/update", async (req, res) => {
     avatar_data = $5,
     banner_url = $6,
     banner_data = $7
-      WHERE id = $6
+      WHERE id = $8
       RETURNING id, username, email, role, bio, avatar_url, avatar_data, banner_url, banner_data
       `,
       [
