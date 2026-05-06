@@ -469,14 +469,8 @@ label {
 }
 
 .achievement-badge {
-  width: 34px;
-  height: 34px;
-
-  border-radius: 50%;
-  padding: 4px;
-
-  background: #111827;
-  border: 1px solid #374151;
+  width: 28px;
+  height: 28px;
 
   display: flex;
   align-items: center;
@@ -492,24 +486,6 @@ label {
 }
 
 .achievement-badge:hover {
-  transform: translateY(-2px) scale(1.08);
+  transform: scale(1.12);
 }
 
-.achievement-badge.common {
-  border-color: #6b7280;
-}
-
-.achievement-badge.rare {
-  border-color: #3b82f6;
-  box-shadow: 0 0 10px #3b82f666;
-}
-
-.achievement-badge.epic {
-  border-color: #a855f7;
-  box-shadow: 0 0 12px #a855f777;
-}
-
-.achievement-badge.legendary {
-  border-color: #f59e0b;
-  box-shadow: 0 0 14px #f59e0b88;
-}
