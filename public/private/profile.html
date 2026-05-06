@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/image/favicon.svg" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Профиль</title>
+  <title>Редактирование профиля</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 
@@ -20,20 +20,18 @@
       <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
       <a href="/private/admin.html" class="button-top"><b>Админка</b></a>
       <a href="/private/devices.html" class="button-top"><b>ESP</b></a>
-      <a id="publicProfileLink" class="button-top" href="#">
-  Открыть публичный профиль
-</a>
+      <a id="publicProfileLink" class="button-top" href="#"><b>Публичный профиль</b></a>
     </div>
   </div>
 
   <div class="container">
     <img src="/image/fa&te.svg" alt="Korvin" width="700" height="100">
 
-    <h1>Профиль</h1>
+    <h1>Редактирование профиля</h1>
 
     <div id="status" class="status-box">Ожидание...</div>
 
-   <div id="profileCard" class="profile-layout" style="display:none;">
+    <div id="profileCard" class="profile-layout" style="display:none;">
 
       <div class="card">
         <center>
@@ -43,7 +41,6 @@
             alt="avatar"
             width="130"
             height="130"
-            style="border-radius:50%; object-fit:cover; border:3px solid #f2b759;"
           >
 
           <h2 id="profileName">Пользователь</h2>
@@ -75,12 +72,23 @@
 
         <label for="avatarFileInput">Или загрузить фото</label>
         <input id="avatarFileInput" type="file" accept="image/*">
-          
-          <label for="bannerInput">Баннер URL</label>
-<input id="bannerInput" type="text" placeholder="https://example.com/banner.png">
 
-<label for="bannerFileInput">Загрузить баннер</label>
-<input id="bannerFileInput" type="file" accept="image/*">
+        <p style="color:#9ca3af;">Максимальный размер файла: 2 МБ</p>
+      </div>
+
+      <div class="card">
+        <h3>Баннер профиля</h3>
+
+        <div
+          id="bannerPreview"
+          style="width:100%; height:140px; border-radius:16px; background:#111827; background-size:cover; background-position:center; border:1px solid #374151; margin-bottom:14px;"
+        ></div>
+
+        <label for="bannerInput">Баннер по URL</label>
+        <input id="bannerInput" type="text" placeholder="https://example.com/banner.png">
+
+        <label for="bannerFileInput">Или загрузить баннер</label>
+        <input id="bannerFileInput" type="file" accept="image/*">
 
         <p style="color:#9ca3af;">Максимальный размер файла: 2 МБ</p>
       </div>
@@ -105,6 +113,16 @@
       document.getElementById("status").textContent = text;
     }
 
+    function updateBannerPreview(src) {
+      const bannerPreview = document.getElementById("bannerPreview");
+
+      if (src) {
+        bannerPreview.style.backgroundImage = `url("${src}")`;
+      } else {
+        bannerPreview.style.backgroundImage = "url('/image/fa&te.svg')";
+      }
+    }
+
     async function loadProfile() {
       const card = document.getElementById("profileCard");
 
@@ -119,11 +137,15 @@
         }
 
         const user = data.user;
-        document.getElementById("publicProfileLink").href =
-  "/user.html?name=" + encodeURIComponent(user.username);
+
+        const publicProfileLink = document.getElementById("publicProfileLink");
+        if (publicProfileLink) {
+          publicProfileLink.href =
+            "/user.html?name=" + encodeURIComponent(user.username);
+        }
 
         setStatus("Профиль загружен");
-        card.style.display = "block";
+        card.style.display = "grid";
 
         document.getElementById("userId").textContent = user.id;
         document.getElementById("userRole").textContent = user.role;
@@ -134,14 +156,20 @@
         document.getElementById("bioInput").value = user.bio || "";
         document.getElementById("avatarInput").value = user.avatar_url || "";
         document.getElementById("bannerInput").value = user.banner_url || "";
-        bannerData = user.banner_data || "";
+
         avatarData = user.avatar_data || "";
+        bannerData = user.banner_data || "";
 
         document.getElementById("avatarPreview").src =
           user.avatar_data ||
           user.avatar_url ||
           "/image/no_avatar.svg";
-    
+
+        updateBannerPreview(
+          user.banner_data ||
+          user.banner_url ||
+          "/image/fa&te.svg"
+        );
 
       } catch (err) {
         console.error(err);
@@ -150,40 +178,16 @@
     }
 
     document.getElementById("avatarInput").addEventListener("input", function () {
-      if (this.value.trim()) {
+      const value = this.value.trim();
+
+      if (value) {
         avatarData = "";
-        document.getElementById("avatarPreview").src = this.value.trim();
+        document.getElementById("avatarPreview").src = value;
       } else {
-        document.getElementById("avatarPreview").src = avatarData || "/image/no_avatar.svg";
+        document.getElementById("avatarPreview").src =
+          avatarData || "/image/no_avatar.svg";
       }
     });
-    
-    document.getElementById("bannerInput").addEventListener("input", function () {
-  if (this.value.trim()) {
-    bannerData = "";
-  }
-});
-
-document.getElementById("bannerFileInput").addEventListener("change", function () {
-  const file = this.files[0];
-
-  if (!file) return;
-
-  if (file.size > 2 * 1024 * 1024) {
-    alert("Баннер слишком большой. Максимум 2 МБ");
-    this.value = "";
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function () {
-    bannerData = reader.result;
-    document.getElementById("bannerInput").value = "";
-  };
-
-  reader.readAsDataURL(file);
-});
 
     document.getElementById("avatarFileInput").addEventListener("change", function () {
       const file = this.files[0];
@@ -207,17 +211,49 @@ document.getElementById("bannerFileInput").addEventListener("change", function (
       reader.readAsDataURL(file);
     });
 
+    document.getElementById("bannerInput").addEventListener("input", function () {
+      const value = this.value.trim();
+
+      if (value) {
+        bannerData = "";
+        updateBannerPreview(value);
+      } else {
+        updateBannerPreview(bannerData || "/image/fa&te.svg");
+      }
+    });
+
+    document.getElementById("bannerFileInput").addEventListener("change", function () {
+      const file = this.files[0];
+
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Баннер слишком большой. Максимум 2 МБ");
+        this.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        bannerData = reader.result;
+        document.getElementById("bannerInput").value = "";
+        updateBannerPreview(bannerData);
+      };
+
+      reader.readAsDataURL(file);
+    });
+
     document.getElementById("saveBtn").onclick = async function () {
       const payload = {
-        const payload = {
-  username: document.getElementById("usernameInput").value.trim(),
-  email: document.getElementById("emailInput").value.trim(),
-  bio: document.getElementById("bioInput").value,
-  avatar_url: document.getElementById("avatarInput").value.trim(),
-  avatar_data: avatarData || "",
-  banner_url: document.getElementById("bannerInput").value.trim(),
-  banner_data: bannerData || ""
-};
+        username: document.getElementById("usernameInput").value.trim(),
+        email: document.getElementById("emailInput").value.trim(),
+        bio: document.getElementById("bioInput").value,
+        avatar_url: document.getElementById("avatarInput").value.trim(),
+        avatar_data: avatarData || "",
+        banner_url: document.getElementById("bannerInput").value.trim(),
+        banner_data: bannerData || ""
+      };
 
       if (!payload.username || !payload.email) {
         setStatus("Логин и email обязательны");
