@@ -257,8 +257,8 @@ app.get("/api/me", async (req, res) => {
     const result = await db.query(
       `
       SELECT id, username, email, role, bio,
-avatar_url, avatar_data,
-banner_url, banner_data
+             avatar_url, avatar_data,
+             banner_url, banner_data
       FROM users
       WHERE id = $1
       `,
@@ -269,61 +269,6 @@ banner_url, banner_data
   } catch (err) {
     console.error("ME ERROR:", err);
     res.status(500).json({ error: "Ошибка загрузки профиля" });
-  }
-});
-
-app.post("/api/profile/update", async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: "Сначала войди в аккаунт" });
-  }
-
-  const { username, email, bio, avatar_url, avatar_data } = req.body;
-
-  if (!username || !email) {
-    return res.status(400).json({ error: "Логин и email обязательны" });
-  }
-
-  try {
-    const result = await db.query(
-      `
-      UPDATE users
-      SET username = $1,
-    email = $2,
-    bio = $3,
-    avatar_url = $4,
-    avatar_data = $5,
-    banner_url = $6,
-    banner_data = $7
-      WHERE id = $8
-      RETURNING id, username, email, role, bio, avatar_url, avatar_data, banner_url, banner_data
-      `,
-      [
-        username,
-        email,
-        bio || "",
-        avatar_url || "",
-        avatar_data || "",
-        req.session.user.id
-      ]
-    );
-
-    const user = result.rows[0];
-
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
-
-    res.json({ message: "Профиль сохранён", user });
-  } catch (err) {
-    if (err.code === "23505") {
-      return res.status(400).json({ error: "Такой логин или email уже занят" });
-    }
-
-    console.error("PROFILE UPDATE ERROR:", err);
-    res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
@@ -999,7 +944,9 @@ app.get("/api/public/profile/:username", async (req, res) => {
   try {
     const result = await db.query(
       `
-      SELECT id, username, role, bio, avatar_url, avatar_data
+      SELECT username, role, bio,
+             avatar_url, avatar_data,
+             banner_url, banner_data
       FROM users
       WHERE username = $1
       LIMIT 1
