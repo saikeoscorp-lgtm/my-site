@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const safeExt = [".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext)
+    const safeExt = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"].includes(ext)
       ? ext
       : ".png";
 
@@ -1157,10 +1157,7 @@ app.post("/api/profile/upload-image", upload.single("image"), async (req, res) =
       );
     }
 
-    res.json({
-      ok: true,
-      url: imagePath
-    });
+    res.json({ ok: true, url: imagePath });
   } catch (err) {
     console.error("UPLOAD IMAGE ERROR:", err);
     res.status(500).json({ error: "Ошибка загрузки изображения" });
