@@ -167,6 +167,11 @@
           user.avatar_data ||
           user.avatar_url ||
           "/image/no_avatar.svg";
+          
+          document.getElementById("bannerImage").src =
+  user.banner_data ||
+  user.banner_url ||
+  "/image/fa&te.svg";
 
       } catch (err) {
 
