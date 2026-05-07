@@ -7,6 +7,7 @@ const db = require("./db");
 const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
 const fs = require("fs");
+const { v2: cloudinary } = require("cloudinary");
 const multer = require("multer");
 
 const deviceLimiter = rateLimit({
@@ -16,6 +17,26 @@ const deviceLimiter = rateLimit({
 });
 
 const app = express();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 3 * 1024 * 1024
+  },
+  fileFilter: function (req, file, cb) {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Можно загружать только изображения"));
+    }
+    cb(null, true);
+  }
+});
+
 
 const uploadsDir = path.join(__dirname, "public", "uploads");
 
@@ -37,19 +58,6 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 2 * 1024 * 1024
-  },
-  fileFilter: function (req, file, cb) {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Можно загружать только изображения"));
-    }
-
-    cb(null, true);
-  }
-});
 
 const PORT = process.env.PORT || 3000;
 
@@ -1130,9 +1138,17 @@ app.post("/api/profile/upload-image", upload.single("image"), async (req, res) =
     return res.status(400).json({ error: "Неверный тип изображения" });
   }
 
-  const imagePath = "/uploads/" + req.file.filename;
-
   try {
+    const base64 = req.file.buffer.toString("base64");
+    const dataUri = `data:${req.file.mimetype};base64,${base64}`;
+
+    const uploadResult = await cloudinary.uploader.upload(dataUri, {
+      folder: `korvin-base/${type}s`,
+      resource_type: "image"
+    });
+
+    const imageUrl = uploadResult.secure_url;
+
     if (type === "avatar") {
       await db.query(
         `
@@ -1141,7 +1157,7 @@ app.post("/api/profile/upload-image", upload.single("image"), async (req, res) =
             avatar_data = ''
         WHERE id = $2
         `,
-        [imagePath, req.session.user.id]
+        [imageUrl, req.session.user.id]
       );
     }
 
@@ -1153,13 +1169,16 @@ app.post("/api/profile/upload-image", upload.single("image"), async (req, res) =
             banner_data = ''
         WHERE id = $2
         `,
-        [imagePath, req.session.user.id]
+        [imageUrl, req.session.user.id]
       );
     }
 
-    res.json({ ok: true, url: imagePath });
+    res.json({
+      ok: true,
+      url: imageUrl
+    });
   } catch (err) {
-    console.error("UPLOAD IMAGE ERROR:", err);
+    console.error("CLOUDINARY UPLOAD ERROR:", err);
     res.status(500).json({ error: "Ошибка загрузки изображения" });
   }
 });
