@@ -1071,6 +1071,21 @@ app.post("/api/profile/update", async (req, res) => {
     banner_data
   } = req.body;
 
+  const isKorvin = req.session.user.username === "Korvin";
+
+if (!isKorvin) {
+
+  if (
+    (avatar_url && avatar_url.endsWith(".gif")) ||
+    (banner_url && banner_url.endsWith(".gif"))
+  ) {
+    return res.status(403).json({
+      error: "GIF доступны только Korvin"
+    });
+  }
+
+  }
+
   if (!username || !email) {
     return res.status(400).json({ error: "Логин и email обязательны" });
   }
