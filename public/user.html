@@ -104,6 +104,10 @@
         }
 
         const user = data.user;
+        if (user.username === "Korvin") {
+          document.body.classList.add("dev-profile");
+        }
+
         const achievements = data.achievements || [];
 
         document.getElementById("profileName").textContent =
