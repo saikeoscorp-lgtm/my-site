@@ -7,7 +7,11 @@
   <title>Редактирование профиля</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
-
+<script>
+  function toggleMobileMenu() {
+    document.getElementById("navLinks").classList.toggle("open");
+  }
+</script>
 <body>
   <div class="topbar">
     <div class="top-bar-left">
@@ -17,13 +21,17 @@
     </div>
 
     <div class="butt-top-right">
-      <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
-      <a href="/private/admin.html" class="button-top"><b>Админка</b></a>
-      <a href="/private/devices.html" class="button-top"><b>ESP</b></a>
-      <a id="publicProfileLink" class="button-top" href="#"><b>Публичный профиль</b></a>
-    </div>
-  </div>
+  <button class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()">
+    Меню ☰
+  </button>
 
+  <div class="nav-links" id="navLinks">
+    <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
+    <a href="/private/profile.html" class="button-top"><b>Профиль</b></a>
+    <a href="/login.html" class="button-top"><b>Вход</b></a>
+    <a href="/registration.html" class="button-top"><b>Регистрация</b></a>
+  </div>
+</div>
   <div class="container">
     <img src="/image/fa&te.svg" alt="Korvin" width="700" height="100">
 
