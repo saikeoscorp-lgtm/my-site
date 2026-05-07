@@ -538,3 +538,66 @@ label {
     display: grid;
   }
 }
+
+/* ===== SPECIAL DEVELOPER PROFILE EFFECTS ===== */
+
+.dev-profile .public-avatar {
+  box-shadow:
+    0 0 18px #f2b759,
+    0 0 35px rgba(242, 183, 89, 0.65);
+  animation: devAvatarGlow 2.5s infinite ease-in-out;
+}
+
+.dev-profile #profileName {
+  background: linear-gradient(90deg, #f2b759, #fff1b8, #f2b759);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: devNameGlow 3s linear infinite;
+}
+
+.dev-profile .public-profile-banner {
+  box-shadow:
+    0 0 24px rgba(242, 183, 89, 0.35);
+}
+
+.dev-profile .public-role span {
+  color: #f2b759;
+  text-shadow: 0 0 12px rgba(242, 183, 89, 0.8);
+}
+
+@keyframes devAvatarGlow {
+  0% {
+    box-shadow:
+      0 0 12px #f2b759,
+      0 0 24px rgba(242, 183, 89, 0.45);
+  }
+
+  50% {
+    box-shadow:
+      0 0 24px #f2b759,
+      0 0 48px rgba(242, 183, 89, 0.75);
+  }
+
+  100% {
+    box-shadow:
+      0 0 12px #f2b759,
+      0 0 24px rgba(242, 183, 89, 0.45);
+  }
+}
+
+@keyframes devNameGlow {
+  0% {
+    background-position: 0%;
+  }
+
+  100% {
+    background-position: 200%;
+  }
+}
+
+.dev-profile .public-avatar {
+  box-shadow:
+    0 0 15px #ff9900,
+    0 0 30px #ff6600;
+}
