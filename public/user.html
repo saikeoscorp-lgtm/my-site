@@ -113,21 +113,15 @@
 
         const badgesBox = document.getElementById("achievementBadges");
 
-        badgesBox.innerHTML = achievements.map(a => {
-          const icon = a.icon_url || "/image/achievements/default.svg";
-          const title = a.title || "achievement";
-          const description = a.description || "";
-
-          return `
-            <img
-              class="achievement-badge"
-              src="${icon}"
-              alt="${title}"
-              title="${title}${description ? " — " + description : ""}"
-            >
-          `;
-        }).join("");
-
+        if (achievements.length === 0) {
+          badgesBox.innerHTML = "";
+        } else {
+        badgesBox.innerHTML = achievements.map(a => `
+          <div class="achievement-badge" title="${a.title}">
+            <img src="${a.icon_url}" alt="${a.title}">
+        </div>
+        `).join("");
+          }
         status.style.display = "none";
         profileBox.style.display = "block";
 
