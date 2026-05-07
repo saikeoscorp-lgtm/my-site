@@ -7,6 +7,11 @@
 	    <title>Панель Администратора</title>
 	    <link rel="stylesheet" href="/style.css" />
 </head>
+<script>
+  function toggleMobileMenu() {
+    document.getElementById("navLinks").classList.toggle("open");
+  }
+</script>
 <body>
 	<div class="topbar">
 		<div class="top-bar-left">
@@ -17,12 +22,17 @@
 		</div>
 
 		<div class="butt-top-right">
-			<a href="/private/devices.html" class="button-top" id="docsBtn"><b>ESPs</b></a>
-			<a href="/private/profile.html" class="button-top" id="profileBtn"><b>Профиль</b></a>
-			<a href="/login.html" class="button-top" id="loginBtn"><b>Вход</b></a>
-			<a href="/registration.html" class="button-top" id="registerBtn"><b>Регистрация</b></a>
-		</div>
+  <button class="mobile-menu-btn" type="button" onclick="toggleMobileMenu()">
+    Меню ☰
+  </button>
+
+  <div class="nav-links" id="navLinks">
+    <a href="/private/docs.html" class="button-top"><b>!docs</b></a>
+    <a href="/private/profile.html" class="button-top"><b>Профиль</b></a>
+    <a href="/login.html" class="button-top"><b>Вход</b></a>
+    <a href="/registration.html" class="button-top"><b>Регистрация</b></a>
 	</div>
+  </div>
 
 	<div class="container">
 		<img src="/image/adminLogo.svg" alt="admin" width="700" height="100">
